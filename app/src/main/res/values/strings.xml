@@ -1,0 +1,54 @@
+<resources>
+    <string name="app_name">LZU小工具</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="left_bracket">（</string>
+    <string name="right_bracket">）</string>
+    <string name="line_break">\n</string>
+    <string name="break1">-</string>
+
+    <string name="welcome">欢迎使用LZU小工具</string>
+    <string name="welcome2">一切只为简单</string>
+
+    <string name="visibility_gone">gone</string>
+    <string name="visibility_visible">visible</string>
+
+    <string name="card_yu_e">校园卡余额：\n</string>
+    <string name="card_dzzh_yu_e">电子账户余额：\n</string>
+    <string name="card_blance">宿舍电量：</string>
+
+    <string name="lzunet_logineduser">登录用户名：</string>
+    <string name="lzunet_hasusedbytes">已用流量：</string>
+    <string name="lzunet_hasusedtime">已用时长：</string>
+    <string name="lzunet_wallet_balance">账户余额：</string>
+
+    <string-array name="themes">
+        <item>宝石绿</item>
+        <item>春之青</item>
+        <item>夏之红</item>
+        <item>秋之丹</item>
+        <item>冬之灰</item>
+        <item>天空蓝</item>
+        <item>少女粉</item>
+    </string-array>
+
+    <string-array name="reserve_campus">
+        <item>榆中昆仑堂</item>
+        <item>城关积石堂</item>
+    </string-array>
+
+    <string-array name="pf_lzulibreserve_select_setting">
+        <item>选择校区</item>
+        <item>自动预约榆中昆仑堂</item>
+        <item>自动预约城关积石堂</item>
+    </string-array>
+    <string-array name="pf_lzulibreserve_select_setting_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string name="versionTip">当前版本：</string>
+</resources>

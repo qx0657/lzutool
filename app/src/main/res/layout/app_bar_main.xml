@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <import
+            alias="MainVM"
+            type="fun.qianxiao.lzutool.ui.main.model.MainViewModel"/>
+        <import type="android.view.View"/>
+        <variable
+            name="mainViewModelAppBar"
+            type="MainVM" />
+    </data>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ui.main.MainDataBadingActivity"
+        android:orientation="vertical">
+
+        <include
+            layout="@layout/toolbar"/>
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:elevation="5dp"
+                    android:padding="15dp"
+                    app:cardCornerRadius="5dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="基本信息"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginTop="10dp"
+                        android:textColor="?attr/colorPrimary"/>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="25dp"
+                        android:gravity="center_vertical">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_weight="1">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:padding="15dp"
+                                android:text="@{mainViewModelAppBar.user==null?@string/welcome:mainViewModelAppBar.user.name+@string/left_bracket+mainViewModelAppBar.user.mailpf+@string/right_bracket+@string/line_break+mainViewModelAppBar.user.cardid}" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:padding="15dp"
+                                android:text="@{mainViewModelAppBar.user==null?@string/welcome2:mainViewModelAppBar.user.college+@string/left_bracket+mainViewModelAppBar.user.marjor+@string/right_bracket}" />
+
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:padding="15dp"
+                                android:text="@{@string/card_yu_e+(mainViewModelAppBar.user==null||mainViewModelAppBar.user.cardInfo==null||mainViewModelAppBar.user.cardInfo.card_yu_e==null?@string/break1:mainViewModelAppBar.user.cardInfo.card_yu_e)}" />
+
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:padding="15dp"
+                                android:text="@{@string/card_dzzh_yu_e+(mainViewModelAppBar.user==null||mainViewModelAppBar.user.cardInfo==null||mainViewModelAppBar.user.cardInfo.card_dzzh_yu_e==null?@string/break1:mainViewModelAppBar.user.cardInfo.card_dzzh_yu_e)}" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:elevation="5dp"
+                    android:padding="15dp"
+                    app:cardCornerRadius="5dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="我的宿舍"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginTop="10dp"
+                        android:textColor="?attr/colorPrimary"/>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="25dp"
+                        android:gravity="center_vertical">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:padding="15dp"
+                                android:text="@{mainViewModelAppBar.user==null||mainViewModelAppBar.user.dormInfo==null||mainViewModelAppBar.user.dormInfo.dorm==null?@string/break1:mainViewModelAppBar.user.dormInfo.dorm}" />
+
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:padding="15dp"
+                                android:text="@{@string/card_blance+(mainViewModelAppBar.user==null||mainViewModelAppBar.user.dormInfo==null||mainViewModelAppBar.user.dormInfo.blance==null?@string/break1:mainViewModelAppBar.user.dormInfo.blance)}" />
+
+                        </LinearLayout>
+                    </LinearLayout>
+
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:elevation="5dp"
+                    android:padding="15dp"
+                    android:visibility="@{mainViewModelAppBar.user==null||mainViewModelAppBar.user.schoolNetInfo==null?View.GONE : View.VISIBLE}"
+                    app:cardCornerRadius="5dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="当前校园网"
+                            android:layout_marginStart="15dp"
+                            android:textColor="?attr/colorPrimary"/>
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="15dp"
+                            android:onClick="@{(view)->mainViewModelAppBar.iMainView.openOrCloseSchoolNetArea(view)}">
+                            <ImageView
+                                android:id="@+id/iv_SchoolNetArea"
+                                android:layout_width="15dp"
+                                android:layout_height="15dp"
+                                android:layout_marginEnd="5dp"
+                                android:src="@drawable/ic_chevron_down_outline"
+                                android:layout_gravity="right|center_vertical"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/ll_SchoolNetArea"
+                        android:visibility="visible"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="30dp"
+                        android:gravity="center_vertical">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:padding="15dp"
+                                android:text="@{@string/lzunet_logineduser+(mainViewModelAppBar.user==null||mainViewModelAppBar.user.schoolNetInfo==null||mainViewModelAppBar.user.schoolNetInfo.user_name==null?@string/break1:mainViewModelAppBar.user.schoolNetInfo.user_name)}" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:padding="15dp"
+                                android:text="@{mainViewModelAppBar.user==null||mainViewModelAppBar.user.schoolNetInfo==null||mainViewModelAppBar.user.schoolNetInfo.billing_name==null?@string/break1:mainViewModelAppBar.user.schoolNetInfo.billing_name}" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:padding="15dp"
+                                android:text="@{mainViewModelAppBar.user==null||mainViewModelAppBar.user.schoolNetInfo==null||mainViewModelAppBar.user.schoolNetInfo.online_ip==null?@string/break1:mainViewModelAppBar.user.schoolNetInfo.online_ip}" />
+
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" >
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:padding="15dp"
+                                android:text="@{@string/lzunet_hasusedbytes+(mainViewModelAppBar.user==null||mainViewModelAppBar.user.schoolNetInfo==null||mainViewModelAppBar.user.schoolNetInfo.hasusedLL==null?@string/break1:mainViewModelAppBar.user.schoolNetInfo.hasusedLL)}" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:padding="15dp"
+                                android:text="@{@string/lzunet_hasusedtime+(mainViewModelAppBar.user==null||mainViewModelAppBar.user.schoolNetInfo==null||mainViewModelAppBar.user.schoolNetInfo.hasusedSC==null?@string/break1:mainViewModelAppBar.user.schoolNetInfo.hasusedSC)}" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:padding="15dp"
+                                android:text="@{@string/lzunet_wallet_balance+(mainViewModelAppBar.user==null||mainViewModelAppBar.user.schoolNetInfo==null||mainViewModelAppBar.user.schoolNetInfo.ZHYE==null?@string/break1:mainViewModelAppBar.user.schoolNetInfo.ZHYE)}" />
+
+
+                        </LinearLayout>
+                    </LinearLayout>
+
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:elevation="5dp"
+                    android:padding="15dp"
+                    app:cardCornerRadius="5dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingTop="15dp"
+                        android:paddingBottom="15dp">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="我的请假状态"
+                            android:layout_marginStart="15dp"
+                            android:textColor="?attr/colorPrimary"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@{mainViewModelAppBar.user==null||mainViewModelAppBar.user.qxjStatu==null?@string/break1:mainViewModelAppBar.user.qxjStatu.toString()}"
+                            android:layout_marginEnd="15dp"/>
+                    </LinearLayout>
+
+
+                </androidx.cardview.widget.CardView>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center">
+
+                    <LinearLayout
+                        android:id="@+id/ll_lzulibreserve"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:orientation="vertical"
+                        android:onClick="@{mainViewModelAppBar::LzuLibReserve}">
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="60dp"
+                            android:src="@drawable/ic_book_outline"/>
+                        <TextView
+                            android:layout_marginTop="8dp"
+                            android:text="图书馆预约"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/ll_healthpunch"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:orientation="vertical"
+                        android:onClick="@{mainViewModelAppBar::healthPunch}">
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="60dp"
+                            android:src="@drawable/ic_medkit_outline"/>
+                        <TextView
+                            android:layout_marginTop="8dp"
+                            android:text="健康打卡"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/ll_healthpunch_cloudtrusteeship"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:orientation="vertical"
+                        android:onClick="@{mainViewModelAppBar::healthPunchCloudTrusteeship}">
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="60dp"
+                            android:src="@drawable/ic_medkit_outline"/>
+                        <TextView
+                            android:layout_marginTop="8dp"
+                            android:text="健康打卡云托管"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+</layout>

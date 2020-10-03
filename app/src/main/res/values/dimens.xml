@@ -1,0 +1,4 @@
+<resources>
+    <!-- 登录弹窗背景圆角大小 -->
+    <dimen name="default_bg_radius">15dp</dimen>
+</resources>

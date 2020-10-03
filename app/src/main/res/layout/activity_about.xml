@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="iAvoutViewModel"
+            type="fun.qianxiao.lzutool.ui.about.IAboutViewModel" />
+        <variable
+            name="version"
+            type="String" />
+    </data>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <include
+            layout="@layout/toolbar"/>
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/side_nav_bar">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="25dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:padding="5dp"
+                        android:src="@drawable/icon_tmd" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="一切只为简单"
+                        android:textColor="@android:color/white"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="20dp"
+                    app:cardCornerRadius="6dp"
+                    android:padding="10dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:orientation="vertical"
+                            android:paddingStart="15dp"
+                            android:paddingTop="15dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="15dp"
+                            android:onClick="@{()->iAvoutViewModel.aboutApp()}">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:padding="5dp">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    app:srcCompat="@drawable/ic_bubble_chart_gay_24dp" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="10dp"
+                                    android:text="软件介绍"
+                                    android:textColor="@color/design_default_color_on_secondary"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:orientation="vertical"
+                            android:paddingStart="15dp"
+                            android:paddingTop="8dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="10dp"
+                            android:onClick="@{()->iAvoutViewModel.checkUpdate()}">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:padding="5dp">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    app:srcCompat="@drawable/ic_podium_outline" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="10dp"
+                                    android:text="检查更新"
+                                    android:textColor="@color/design_default_color_on_secondary"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="35dp"
+                                android:text="@{@string/versionTip+version,default=@string/versionTip}" />
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:orientation="vertical"
+                            android:paddingStart="15dp"
+                            android:paddingTop="8dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="10dp"
+                            android:onClick="@{()->iAvoutViewModel.joinQQGroup()}">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:padding="5dp">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:padding="1dp"
+                                    app:srcCompat="@drawable/ic_people_outline" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="10dp"
+                                    android:text="加入群组"
+                                    android:textColor="@color/design_default_color_on_secondary"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="35dp"
+                                android:text="加入官方QQ群，交友互水。" />
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:orientation="vertical"
+                            android:paddingStart="15dp"
+                            android:paddingTop="15dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="15dp"
+                            android:onClick="@{()->iAvoutViewModel.shareApp()}">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:padding="5dp">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    app:srcCompat="@drawable/ic_share" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="10dp"
+                                    android:text="分享应用"
+                                    android:textColor="@color/design_default_color_on_secondary"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:orientation="vertical"
+                            android:paddingStart="15dp"
+                            android:paddingTop="15dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="15dp"
+                            android:onClick="@{()->iAvoutViewModel.contactDeveloper()}">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:padding="5dp">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="wrap_content"
+                                    app:srcCompat="@drawable/ic_chatbox_ellipses_outline" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="10dp"
+                                    android:text="联系开发者"
+                                    android:textColor="@color/design_default_color_on_secondary"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="35dp"
+                                android:text="Bug反馈，技术交流，欢迎与我联系"/>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:orientation="vertical"
+                            android:paddingStart="15dp"
+                            android:paddingTop="15dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="15dp"
+                            android:onClick="@{()->iAvoutViewModel.supportDeveloper()}">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:padding="5dp">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    app:srcCompat="@drawable/ic_cafe_outline" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="10dp"
+                                    android:text="支持开发者"
+                                    android:textColor="@color/design_default_color_on_secondary"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="35dp"
+                                android:text="If you find this app helpful,you can buy me a coffee.Thanks you!"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+</layout>

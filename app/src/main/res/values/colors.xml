@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#79bd9a</color>
+    <color name="colorPrimaryDark">#70BC95</color>
+    <color name="colorAccent">#79bd9a</color>
+
+    <color name="colorPrimary_green">#4caf50</color>
+    <color name="colorPrimaryDark_green">#42B147</color>
+    <color name="colorAccent_green">#4caf50</color>
+
+    <color name="colorPrimary_red">#cb7575</color>
+    <color name="colorPrimaryDark_red">#CD6D6D</color>
+    <color name="colorAccent_red">#cb7575</color>
+
+    <color name="colorPrimary_redpro">#c03546</color>
+    <color name="colorPrimaryDark_redpro">#C33143</color>
+    <color name="colorAccent_redpro">#c03546</color>
+
+    <color name="colorPrimary_grey">#9baec8</color>
+    <color name="colorPrimaryDark_grey">#92A9C8</color>
+    <color name="colorAccent_grey">#9baec8</color>
+
+    <color name="colorPrimary_blue">#80d4f6</color>
+    <color name="colorPrimaryDark_blue">#6ECFF6</color>
+    <color name="colorAccent_blue">#80d4f6</color>
+
+    <color name="colorPrimary_pink">#f48fb1</color>
+    <color name="colorPrimaryDark_pink">#F68AAE</color>
+    <color name="colorAccent_pink">#f48fb1</color>
+
+    <color name="warning">#FFB90F</color>
+
+</resources>

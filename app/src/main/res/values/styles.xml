@@ -1,0 +1,67 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+    <style name="AppTheme1" parent="AppTheme.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+    <style name="AppTheme2" parent="AppTheme.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary_green</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark_green</item>
+        <item name="colorAccent">@color/colorAccent_green</item>
+    </style>
+    <style name="AppTheme3" parent="AppTheme.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary_red</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark_red</item>
+        <item name="colorAccent">@color/colorAccent_red</item>
+    </style>
+    <style name="AppTheme4" parent="AppTheme.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary_redpro</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark_redpro</item>
+        <item name="colorAccent">@color/colorAccent_redpro</item>
+    </style>
+    <style name="AppTheme5" parent="AppTheme.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary_grey</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark_grey</item>
+        <item name="colorAccent">@color/colorAccent_grey</item>
+    </style>
+    <style name="AppTheme6" parent="AppTheme.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary_blue</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark_blue</item>
+        <item name="colorAccent">@color/colorAccent_blue</item>
+    </style>
+    <style name="AppTheme7" parent="AppTheme.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary_pink</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark_pink</item>
+        <item name="colorAccent">@color/colorAccent_pink</item>
+    </style>
+    <style name="AppThemeNormal" parent="AppTheme.NoActionBar">
+        <item name="android:windowBackground">@drawable/drawable_splash</item>
+    </style>
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="ToolbarStyle" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="actionOverflowMenuStyle">@style/OverflowMenuStyle</item>
+    </style>
+
+    <style name="OverflowMenuStyle" parent="Widget.AppCompat.Light.PopupMenu.Overflow">
+        <item name="overlapAnchor">false</item>
+        <item name="android:dropDownVerticalOffset">4dp</item>
+        <item name="android:dropDownHorizontalOffset">4dp</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+</resources>
