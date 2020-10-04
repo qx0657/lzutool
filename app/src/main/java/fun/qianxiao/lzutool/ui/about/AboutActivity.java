@@ -53,13 +53,14 @@ public class AboutActivity extends BaseDataBadingActivity<ActivityAboutBinding> 
         new AlertDialog.Builder(this)
                     .setTitle("关于")
                     .setMessage("这是一款LZU小工具\n" +
-                            "方便您查校园卡余额、宿舍电费、校园网信息、请假状态，支持一键图书馆预约、一键健康打卡，更多功能，一切只为简单。" +
+                            "方便您查校园卡余额、宿舍电费、校园网信息、请假状态，支持一键图书馆预约、一键健康打卡、一键下载成绩单、一键校园卡挂失解挂，更多功能，一切只为简单。" +
                             "\n\n" +
-                            "作者：浅笑")
-                    .setPositiveButton("软件开源", (dialog1, which) -> {
+                            "作者：浅笑\n" +
+                            "软件已完全开源，欢迎技术交流或一起努力完善。")
+                    .setPositiveButton("Github地址", (dialog1, which) -> {
                         Intent intent = new Intent();
                         intent.setAction("android.intent.action.VIEW");
-                        Uri content_url = Uri.parse("http://qianxiao.fun");
+                        Uri content_url = Uri.parse("https://github.com/qx0657/lzutool");
                         intent.setData(content_url);
                         startActivity(intent);
                     })
@@ -98,7 +99,7 @@ public class AboutActivity extends BaseDataBadingActivity<ActivityAboutBinding> 
 
     @Override
     public void shareApp() {
-        String ShareStr = "LZU小工具是一款方便您查校园卡余额、宿舍电费、校园网信息、请假状态等的软件，软件支持一键图书馆预约、一键健康打卡，更多功能，一切只为简单。\n下载地址：\n" +
+        String ShareStr = "LZU小工具是一款方便您查校园卡余额、宿舍电费、校园网信息、请假状态等的软件，软件支持一键图书馆预约、一键健康打卡、一键下载成绩单、一键校园卡挂失解挂，更多功能，一切只为简单。\n下载地址：\n" +
                 "http://lzutool.qianxiao.fun/";
         Intent StringIntent = new Intent(Intent.ACTION_SEND);
         StringIntent.setType("text/plain");

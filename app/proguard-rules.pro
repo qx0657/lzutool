@@ -124,6 +124,8 @@
 #百度埋点
 -keep class com.baidu.mobstat.** { *; }
 -keep class com.baidu.bottom.** { *; }
+#jsoup
+-keeppackagenames org.jsoup.nodes
 
 #保留@keep注解的
 -dontskipnonpubliclibraryclassmembers

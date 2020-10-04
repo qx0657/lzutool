@@ -13,16 +13,19 @@ import com.android.volley.toolbox.StringRequest;
 import com.blankj.utilcode.util.ConvertUtils;
 import com.blankj.utilcode.util.EncryptUtils;
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.MapUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 import fun.qianxiao.lzutool.bean.User;
 import fun.qianxiao.lzutool.utils.HttpConnectionUtil;
+import fun.qianxiao.lzutool.utils.MyCookieUtils;
 import fun.qianxiao.lzutool.utils.MySpUtils;
 import fun.qianxiao.lzutool.utils.MyVolleyManager;
 
@@ -245,6 +248,27 @@ public class LzuloginModel {
             callBack.onLoginZhxgGetJsessionidAndRouteSuccess(cookies);
         }else{
             callBack.onLoginZhxgGetJsessionidAndRouteError("智慧学工登录失败");
+        }
+    }
+
+    public interface LoginEcardGetSidCallBack{
+        void onLoginEcardGetSidSuccess(Map<String,String> ecardcookie);
+        void onLoginEcardGetSidError(String error);
+    }
+
+    /**
+     * tgt登录智慧一卡通获取sid
+     * @param tgt
+     * @param callBack
+     */
+    public void loginEcardGetSid(String tgt,LoginEcardGetSidCallBack callBack){
+        String cookies = HttpConnectionUtil.getHttp().request302getResponseCookie(
+                "https://ecard.lzu.edu.cn/lzulogin",
+                "iPlanetDirectoryPro="+tgt);
+        if(!TextUtils.isEmpty(cookies)){
+            callBack.onLoginEcardGetSidSuccess(MyCookieUtils.cookieStr2map(cookies));
+        }else{
+            callBack.onLoginEcardGetSidError("智慧一卡通登录失败");
         }
     }
 }

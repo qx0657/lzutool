@@ -27,6 +27,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
+                android:paddingBottom="15dp"
                 android:orientation="vertical">
 
                 <androidx.cardview.widget.CardView
@@ -211,6 +212,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:padding="15dp"
+                                android:onClick="@{v->mainViewModelAppBar.copyIp()}"
                                 android:text="@{mainViewModelAppBar.user==null||mainViewModelAppBar.user.schoolNetInfo==null||mainViewModelAppBar.user.schoolNetInfo.online_ip==null?@string/break1:mainViewModelAppBar.user.schoolNetInfo.online_ip}" />
 
                         </LinearLayout>
@@ -280,66 +282,154 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center">
+                    android:orientation="vertical"
+                    android:paddingStart="5dp"
+                    android:paddingEnd="5dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center">
 
-                    <LinearLayout
-                        android:id="@+id/ll_lzulibreserve"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:padding="8dp"
-                        android:orientation="vertical"
-                        android:onClick="@{mainViewModelAppBar::LzuLibReserve}">
-                        <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="60dp"
-                            android:src="@drawable/ic_book_outline"/>
-                        <TextView
-                            android:layout_marginTop="8dp"
-                            android:text="图书馆预约"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
+                        <LinearLayout
+                            android:id="@+id/ll_lzulibreserve"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:padding="3dp"
+                            android:orientation="vertical"
+                            android:onClick="@{mainViewModelAppBar::LzuLibReserve}">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="60dp"
+                                android:src="@drawable/ic_book_outline"/>
+                            <TextView
+                                android:layout_marginTop="8dp"
+                                android:text="图书馆预约"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:id="@+id/ll_healthpunch"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:padding="3dp"
+                            android:orientation="vertical"
+                            android:onClick="@{mainViewModelAppBar::healthPunch}">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="60dp"
+                                android:src="@drawable/ic_medkit_outline"/>
+                            <TextView
+                                android:layout_marginTop="8dp"
+                                android:text="健康打卡"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:id="@+id/ll_healthpunch_cloudtrusteeship"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:padding="3dp"
+                            android:orientation="vertical"
+                            android:onClick="@{mainViewModelAppBar::healthPunchCloudTrusteeship}">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="60dp"
+                                android:src="@drawable/ic_medkit_outline"/>
+                            <TextView
+                                android:layout_marginTop="8dp"
+                                android:text="打卡云托管"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:padding="3dp"
+                            android:orientation="vertical"
+                            android:onClick="@{v->mainViewModelAppBar.downSchoolResport()}">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="60dp"
+                                android:src="@drawable/ic_school_outline"/>
+                            <TextView
+                                android:id="@+id/tv_downloadschoolresport"
+                                android:layout_marginTop="8dp"
+                                android:text="下载成绩单"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
                     </LinearLayout>
                     <LinearLayout
-                        android:id="@+id/ll_healthpunch"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:padding="8dp"
-                        android:orientation="vertical"
-                        android:onClick="@{mainViewModelAppBar::healthPunch}">
-                        <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="60dp"
-                            android:src="@drawable/ic_medkit_outline"/>
-                        <TextView
-                            android:layout_marginTop="8dp"
-                            android:text="健康打卡"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
-                    </LinearLayout>
-                    <LinearLayout
-                        android:id="@+id/ll_healthpunch_cloudtrusteeship"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:padding="8dp"
-                        android:orientation="vertical"
-                        android:onClick="@{mainViewModelAppBar::healthPunchCloudTrusteeship}">
-                        <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="60dp"
-                            android:src="@drawable/ic_medkit_outline"/>
-                        <TextView
-                            android:layout_marginTop="8dp"
-                            android:text="健康打卡云托管"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
+                        android:orientation="horizontal"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:padding="3dp"
+                            android:orientation="vertical"
+                            android:onClick="@{v->mainViewModelAppBar.resportCardLoss(true)}">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="60dp"
+                                android:src="@drawable/ic_lock_closed_outline"/>
+                            <TextView
+                                android:layout_marginTop="8dp"
+                                android:text="校园卡挂失"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:padding="3dp"
+                            android:orientation="vertical"
+                            android:onClick="@{v->mainViewModelAppBar.resportCardLoss(false)}">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="60dp"
+                                android:src="@drawable/ic_lock_open_outline"/>
+                            <TextView
+                                android:layout_marginTop="8dp"
+                                android:text="校园卡解挂"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:padding="3dp"
+                            android:orientation="vertical"
+                            android:onClick="@{v->mainViewModelAppBar.more()}">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="60dp"
+                                android:src="@drawable/ic_grid_outline"/>
+                            <TextView
+                                android:layout_marginTop="8dp"
+                                android:text="更多功能 敬请期待"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>

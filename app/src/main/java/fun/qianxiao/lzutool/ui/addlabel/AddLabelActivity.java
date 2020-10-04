@@ -12,6 +12,8 @@ import java.util.List;
 import fun.qianxiao.lzutool.R;
 import fun.qianxiao.lzutool.base.BaseDataBadingActivity;
 import fun.qianxiao.lzutool.databinding.ActivityAddlabelBinding;
+import fun.qianxiao.lzutool.ui.main.sub.CancleCardReportLossActivity;
+import fun.qianxiao.lzutool.ui.main.sub.CardReportLossActivity;
 import fun.qianxiao.lzutool.ui.main.sub.HealthPunchActivity;
 import fun.qianxiao.lzutool.ui.main.sub.LzuLibReserveActivity;
 
@@ -60,6 +62,14 @@ public class AddLabelActivity extends BaseDataBadingActivity<ActivityAddlabelBin
                 R.drawable.ic_medkit_outline,
                 "健康打卡",
                 HealthPunchActivity.class.getName()));
+        labelDataList.add(new LabelData(
+                R.drawable.ic_lock_closed_outline,
+                "校园卡挂失",
+                CardReportLossActivity.class.getName()));
+        labelDataList.add(new LabelData(
+                R.drawable.ic_lock_open_outline,
+                "校园卡解挂",
+                CancleCardReportLossActivity.class.getName()));
         LabelBindAdapter adapter = new LabelBindAdapter(labelDataList);
         adapter.setIBindingClick(new AddLabelViewModel(this));
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));

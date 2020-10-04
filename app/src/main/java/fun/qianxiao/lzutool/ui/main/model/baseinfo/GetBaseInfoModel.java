@@ -12,12 +12,17 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.blankj.utilcode.util.EncryptUtils;
+import com.blankj.utilcode.util.JsonUtils;
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.ThreadUtils;
 import com.blankj.utilcode.util.TimeUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +30,7 @@ import java.util.Objects;
 
 import fun.qianxiao.lzutool.bean.DormInfo;
 import fun.qianxiao.lzutool.bean.SchoolNetInfo;
+import fun.qianxiao.lzutool.utils.MyCookieUtils;
 import fun.qianxiao.lzutool.utils.MyTimeUtils;
 import fun.qianxiao.lzutool.utils.MyVolleyManager;
 import fun.qianxiao.lzutool.utils.SignUtils;
@@ -237,5 +243,53 @@ public class GetBaseInfoModel {
         };
         getLzuNetInfoRequest.setRetryPolicy(new DefaultRetryPolicy(1000,0,1f));
         MyVolleyManager.getRequestQueue().add(getLzuNetInfoRequest);
+    }
+
+    public interface GetCardAccNumCallBack{
+        void onGetCardAccNumSuccess(String cardAccNum);
+        void onGetCardAccNumError(String error);
+    }
+
+    /**
+     * 获取校园卡cardAccNum 后面的校园卡挂失解挂操作会用到
+     * （登录智慧一卡通获取，还有一种直接通过accnum获取方式暂时不用）
+     * @param ecardcookie 智慧一卡通cookie
+     * @param callBack
+     */
+    public void getCardAccNum(Map<String,String> ecardcookie,GetCardAccNumCallBack callBack){
+        /*new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Document doc = Jsoup.connect("https://ecard.lzu.edu.cn/")
+                            .timeout(5000)
+                            .cookies(ecardcookie)
+                            .post();
+                    String cardAccNum = doc.select("input#cardAccNum").first().val();
+                    ThreadUtils.runOnUiThread(() -> callBack.onGetCardAccNumSuccess(cardAccNum));
+                } catch (IOException e) {
+                    ThreadUtils.runOnUiThread(() -> callBack.onGetCardAccNumError(e.getMessage()));
+                }
+            }
+        }).start();*/
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.GET,
+                "https://ecard.lzu.edu.cn/",
+                response -> {
+                    Document doc = Jsoup.parse(response);
+                    String cardAccNum = doc.select("input#cardAccNum").first().val();
+                    callBack.onGetCardAccNumSuccess(cardAccNum);
+                },error -> callBack.onGetCardAccNumError(error.getMessage())){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = super.getHeaders();
+                if(headers == null || headers.equals(Collections.emptyMap())){
+                    headers = new HashMap<>();
+                }
+                headers.put("Cookie", MyCookieUtils.map2cookieStr(ecardcookie));
+                return headers;
+            }
+        };
+        MyVolleyManager.getRequestQueue().add(stringRequest);
     }
 }

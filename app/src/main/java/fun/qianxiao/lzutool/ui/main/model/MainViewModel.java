@@ -1,10 +1,13 @@
 package fun.qianxiao.lzutool.ui.main.model;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Environment;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
@@ -12,17 +15,30 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.databinding.BaseObservable;
 import androidx.databinding.Bindable;
 import androidx.databinding.ViewDataBinding;
 
+import com.blankj.utilcode.constant.PermissionConstants;
+import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.ConvertUtils;
+import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.KeyboardUtils;
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.MapUtils;
+import com.blankj.utilcode.util.PermissionUtils;
 import com.blankj.utilcode.util.RegexUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.blankj.utilcode.util.UriUtils;
+import com.blankj.utilcode.util.Utils;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+
 import fun.qianxiao.lzutool.BR;
 import fun.qianxiao.lzutool.R;
 import fun.qianxiao.lzutool.bean.CardInfo;
@@ -30,6 +46,7 @@ import fun.qianxiao.lzutool.bean.DormInfo;
 import fun.qianxiao.lzutool.bean.SchoolNetInfo;
 import fun.qianxiao.lzutool.bean.User;
 import fun.qianxiao.lzutool.ui.main.model.baseinfo.GetBaseInfoModel;
+import fun.qianxiao.lzutool.ui.main.model.cardreportlossorcanclereportloss.CardReportLossModel;
 import fun.qianxiao.lzutool.ui.main.model.healthpunch.HealthPunchModel;
 import fun.qianxiao.lzutool.ui.main.model.healthpunchcloudtrusteeship.CloudTrusteeshipModel;
 import fun.qianxiao.lzutool.ui.main.model.lzulibreserve.LzulibreserveModel;
@@ -37,7 +54,10 @@ import fun.qianxiao.lzutool.ui.main.model.lzulogin.LzuloginModel;
 import fun.qianxiao.lzutool.ui.main.IMainView;
 import fun.qianxiao.lzutool.ui.main.MainDataBadingActivity;
 import fun.qianxiao.lzutool.ui.main.model.qxj.QxjModel;
+import fun.qianxiao.lzutool.ui.main.model.undergraduateachievementcertificate.SchoolReportDownloadModel;
 import fun.qianxiao.lzutool.ui.setting.SettingFragment;
+import fun.qianxiao.lzutool.utils.ClipboardUtils;
+import fun.qianxiao.lzutool.utils.MyCookieUtils;
 import fun.qianxiao.lzutool.utils.MySpUtils;
 import fun.qianxiao.lzutool.view.MyLoadingDialog;
 
@@ -298,8 +318,8 @@ public class MainViewModel extends BaseObservable implements IClickView {
             return;
         }
         int lastselectedcampus = MySpUtils.getInt("reserve_campus");
-        if(!MySpUtils.getString(SettingFragment.LZULIBRESERVE_KEY).equals("0")){
-            reserve(Integer.parseInt(MySpUtils.getString(SettingFragment.LZULIBRESERVE_KEY)));
+        if(!TextUtils.isEmpty(MySpUtils.getString(SettingFragment.LZULIBRESERVE_KEY))&&!MySpUtils.getString(SettingFragment.LZULIBRESERVE_KEY).equals("0")){
+            reserve(Integer.parseInt(MySpUtils.getString(SettingFragment.LZULIBRESERVE_KEY))-1);
         }else{
             final int[] selectcampus = {lastselectedcampus};
             new AlertDialog.Builder(context)
@@ -463,7 +483,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                             KeyboardUtils.hideSoftInput(editText);
                             dialog1.dismiss();
                             openLoadingDialog("正在提交");
-                            cloudTrusteeshipModel.trusteeshipSubmit(login_uid, login_pwd, email, new CloudTrusteeshipModel.TrusteeshipOperationCallBack() {
+                            cloudTrusteeshipModel.trusteeshipSubmit(user.getMailpf(), login_pwd, email, new CloudTrusteeshipModel.TrusteeshipOperationCallBack() {
                                 @Override
                                 public void onTrusteeshipOperationSuccess(String res) {
                                     closeLoadingDialog();
@@ -488,6 +508,210 @@ public class MainViewModel extends BaseObservable implements IClickView {
                     context.startActivity(intent);
                 })
                 .show();
+    }
+
+    @Override
+    public void copyIp() {
+        if(user!=null&&user.getSchoolNetInfo()!=null&&!TextUtils.isEmpty(user.getSchoolNetInfo().getOnline_ip()))
+        ClipboardUtils.Copy2Clipboard(user.getSchoolNetInfo().getOnline_ip());
+        ToastUtils.showShort("ip已复制至剪贴板");
+    }
+
+    /**
+     * 下载成绩单点击
+     */
+    @Override
+    public void downSchoolResport() {
+        if(user == null){
+            ToastUtils.showShort("请登录后使用");
+            lzuloginModel.showLoginDialog();
+            return;
+        }
+        String login_uid = MySpUtils.getString("login_uid");
+        String login_pwd = MySpUtils.getString("login_pwd");
+        if(TextUtils.isEmpty(login_uid)||TextUtils.isEmpty(login_pwd)){
+            return;
+        }
+        if(!PermissionUtils.isGranted(Manifest.permission.WRITE_EXTERNAL_STORAGE)){
+            PermissionUtils.permission(PermissionConstants.STORAGE)
+                    .rationale((activity, shouldRequest) -> shouldRequest.again(true))
+                    .callback(new PermissionUtils.FullCallback() {
+
+                        @Override
+                        public void onGranted(@NonNull List<String> granted) {
+                            downSchoolResport();
+                        }
+
+                        @Override
+                        public void onDenied(@NonNull List<String> deniedForever, @NonNull List<String> denied) {
+                            if (!deniedForever.isEmpty()) {
+                                //永久禁止
+                                AlertDialog.Builder builder = new AlertDialog.Builder(Utils.getApp())
+                                        .setTitle("温馨提示")
+                                        .setMessage("您已拒绝本软件再次请求存储权限，请前往设置页面手动授予本如那件存储权限。")
+                                        .setPositiveButton("前往设置页面", (dialog, which) -> {
+                                            PermissionUtils.launchAppDetailsSettings();
+                                        })
+                                        .setCancelable(false);
+                                builder.show();
+                            }else{
+                                downSchoolResport();
+                            }
+                        }
+                    })
+                    .request();
+            return;
+        }
+        final String savefilepath = Environment.getExternalStorageDirectory() + File.separator + AppUtils.getAppName() + File.separator +
+                user.getName()+"成绩单.pdf";
+        if(FileUtils.isFileExists(savefilepath)){
+            new AlertDialog.Builder(context)
+                    .setTitle("提示")
+                    .setMessage("“"+user.getName()+"成绩单.pdf”已下载。保存至"+savefilepath+"。")
+                    .setPositiveButton("立即打开",(dialog, which) -> {
+                        Uri path = UriUtils.file2Uri(new File(savefilepath));
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setDataAndType(path, "application/pdf");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        try {
+                            context.startActivity(intent);
+                        } catch (ActivityNotFoundException e) {
+                            ToastUtils.showShort("No Application Available to View PDF");
+                        }
+                    })
+                    .setNeutralButton("重新下载",(dialog, which) -> {
+                        FileUtils.delete(savefilepath);
+                        downSchoolResport();
+                    })
+                    .show();
+            return;
+        }
+        openLoadingDialog("请耐心等待\n10秒左右");
+        lzuloginModel.loginGetTGT(login_uid, login_pwd, new LzuloginModel.LoginGetTGTCallBack() {
+            @Override
+            public void onLoginGetTGTSuccess(String tgt) {
+                new SchoolReportDownloadModel()
+                        .downloadSchoolReport(
+                                tgt,
+                                savefilepath,
+                                new SchoolReportDownloadModel.DownloadSchoolReportCallBack() {
+                                    @Override
+                                    public void onDownloadSchoolReportSuccess() {
+                                        closeLoadingDialog();
+                                        new AlertDialog.Builder(context)
+                                                .setTitle("成绩单下载成功")
+                                                .setMessage("文件保存至"+savefilepath)
+                                                .setPositiveButton("确定",null)
+                                                .setNeutralButton("立即打开",(dialog, which) -> {
+                                                    Uri path = UriUtils.file2Uri(new File(savefilepath));
+                                                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                                                    intent.setDataAndType(path, "application/pdf");
+                                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                    try {
+                                                        context.startActivity(intent);
+                                                    } catch (ActivityNotFoundException e) {
+                                                        ToastUtils.showShort("No Application Available to View PDF");
+                                                    }
+                                                })
+                                                .show();
+                                    }
+
+                                    @Override
+                                    public void onDownloadSchoolReportError(String error) {
+                                        LogUtils.e(error);
+                                        closeLoadingDialog();
+                                        ToastUtils.showShort("onDownloadSchoolReportError:"+error);
+                                    }
+                                }
+                        );
+            }
+
+            @Override
+            public void onLoginGetTGTError(String error) {
+                LogUtils.e(error);
+                closeLoadingDialog();
+                ToastUtils.showShort("onLoginGetTGTError:"+error);
+            }
+        });
+    }
+
+    @Override
+    public void resportCardLoss(boolean isLose) {
+        if(user == null){
+            ToastUtils.showShort("请登录后使用");
+            lzuloginModel.showLoginDialog();
+            return;
+        }
+        String login_uid = MySpUtils.getString("login_uid");
+        String login_pwd = MySpUtils.getString("login_pwd");
+        if(TextUtils.isEmpty(login_uid)||TextUtils.isEmpty(login_pwd)){
+            return;
+        }
+        openLoadingDialog(isLose?"正在挂失":"正在解挂");
+        lzuloginModel.loginGetTGT(login_uid, login_pwd, new LzuloginModel.LoginGetTGTCallBack() {
+            @Override
+            public void onLoginGetTGTSuccess(String tgt) {
+                lzuloginModel.loginEcardGetSid(tgt, new LzuloginModel.LoginEcardGetSidCallBack() {
+                    @Override
+                    public void onLoginEcardGetSidSuccess(Map<String,String> ecardcookie) {
+                        LogUtils.i(ecardcookie);
+                        ecardcookie.put("iPlanetDirectoryPro",tgt);
+                        getBaseInfoModel.getCardAccNum(ecardcookie, new GetBaseInfoModel.GetCardAccNumCallBack() {
+                            @Override
+                            public void onGetCardAccNumSuccess(String cardAccNum) {
+                                LogUtils.i(cardAccNum);
+                                new CardReportLossModel().report(
+                                        MyCookieUtils.map2cookieStr(ecardcookie),
+                                        cardAccNum,
+                                        user.getCardid(),
+                                        isLose,
+                                        new CardReportLossModel.CardReportLossOperationCallBack() {
+                                            @Override
+                                            public void onCardReportLossOperationSuccess(String res) {
+                                                closeLoadingDialog();
+                                                iMainView.ShowSnackbar(ContextCompat.getColor(context, iMainView.getColorPrimaryId()),res);
+                                            }
+
+                                            @Override
+                                            public void onCardReportLossOperationError(String error) {
+                                                LogUtils.e(error);
+                                                ToastUtils.showShort(error);
+                                                closeLoadingDialog();
+                                            }
+                                        }
+                                );
+                            }
+
+                            @Override
+                            public void onGetCardAccNumError(String error) {
+                                LogUtils.e(error);
+                                ToastUtils.showShort(error);
+                                closeLoadingDialog();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onLoginEcardGetSidError(String error) {
+                        LogUtils.e(error);
+                        ToastUtils.showShort(error);
+                        closeLoadingDialog();
+                    }
+                });
+            }
+
+            @Override
+            public void onLoginGetTGTError(String error) {
+                LogUtils.e(error);
+                ToastUtils.showShort(error);
+                closeLoadingDialog();
+            }
+        });
+    }
+
+    @Override
+    public void more() {
+        ToastUtils.showShort("更多功能，敬请期待\n如您有想要的功能，欢迎联系浅笑反馈");
     }
 
     /**
