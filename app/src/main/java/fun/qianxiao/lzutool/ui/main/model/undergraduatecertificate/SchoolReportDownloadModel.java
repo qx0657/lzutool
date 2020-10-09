@@ -1,4 +1,4 @@
-package fun.qianxiao.lzutool.ui.main.model.undergraduateachievementcertificate;
+package fun.qianxiao.lzutool.ui.main.model.undergraduatecertificate;
 
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.ThreadUtils;
@@ -21,16 +21,17 @@ public class SchoolReportDownloadModel {
     /**
      * 成绩单下载
      * @param tgt
+     * @param flag
      * @param callBack
      */
-    public void downloadSchoolReport(String tgt,String savepath,DownloadSchoolReportCallBack callBack){
+    public void downloadSchoolReport(String tgt,int flag,String savepath,DownloadSchoolReportCallBack callBack){
         if(!FileUtils.createOrExistsFile(savepath)){
             callBack.onDownloadSchoolReportError("创建文件失败");
         }else{
             new Thread(() -> {
                 try {
                     UtilsHttpHelper.downloadNet(
-                            "http://self.lzu.edu.cn/app_stamp/printLadpLogin?bizType=1001",
+                            "http://self.lzu.edu.cn/app_stamp/printLadpLogin?bizType="+flag,
                             "iPlanetDirectoryPro=" + tgt,
                             savepath,
                             () -> ThreadUtils.runOnUiThread(callBack::onDownloadSchoolReportSuccess));

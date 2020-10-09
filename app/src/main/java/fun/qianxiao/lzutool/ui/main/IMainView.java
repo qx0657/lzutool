@@ -14,6 +14,6 @@ public interface IMainView {
     int getColorPrimaryId();
     void ShowSnackbar(String msg);
     void ShowSnackbar(int backgroundcolor,String msg);
-
     void openOrCloseSchoolNetArea(View view);
+    void pleaseSelectDorm();
 }

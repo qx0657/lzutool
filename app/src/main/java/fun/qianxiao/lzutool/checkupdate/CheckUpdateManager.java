@@ -3,6 +3,7 @@ package fun.qianxiao.lzutool.checkupdate;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -22,6 +23,7 @@ import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.PermissionUtils;
 import com.blankj.utilcode.util.ThreadUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.blankj.utilcode.util.UriUtils;
 import com.blankj.utilcode.util.Utils;
 
 import org.json.JSONException;
@@ -31,11 +33,13 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.List;
 
-import fun.qianxiao.lzutool.checkupdate.download.A;
-import fun.qianxiao.lzutool.checkupdate.download.DownLoadUtils;
 import fun.qianxiao.lzutool.utils.MyVolleyManager;
+import fun.qianxiao.lzutool.utils.android10downloadfile.HttpDownFileUtils;
+import fun.qianxiao.lzutool.utils.android10downloadfile.OnFileDownListener;
 import fun.qianxiao.lzutool.view.ILoadingView;
 import fun.qianxiao.lzutool.view.MyLoadingDialog;
+
+import static android.os.Environment.DIRECTORY_DOWNLOADS;
 
 
 /**
@@ -81,9 +85,8 @@ public class CheckUpdateManager implements ILoadingView {
                             String newversionname  = jsonObject.getString("newversionname");
                             String newapkmd5 = jsonObject.getString("newapkmd5");
                             String downloadurl = jsonObject.getString("downloadurl");
-                            String filename = AppUtils.getAppName()+".ver."+newversionname+".apk";
-                            final String apksavefilepath = Environment.getExternalStorageDirectory() + File.separator + AppUtils.getAppName() + File.separator + filename;
-
+                            String filename = downloadurl.substring(downloadurl.lastIndexOf("/")+1);
+                            final String apksavefilepath = Environment.getExternalStorageDirectory() + File.separator + DIRECTORY_DOWNLOADS + File.separator + filename;
                             if(FileUtils.isFileExists(apksavefilepath) && FileUtils.getFileMD5ToString(apksavefilepath).equals(newapkmd5.toUpperCase())){
                                 isApkFullyDownloaded = true;
                             }
@@ -147,45 +150,53 @@ public class CheckUpdateManager implements ILoadingView {
                                                 return;
                                             }
                                             hideNegativeButton(true);
-                                            //调用系统下载器下载
-                                            new DownLoadUtils((Activity) context, downloadurl, "破解笔记.v."+newversionname)
-                                                    .downLoad(apksavefilepath,new Handler(){
-                                                        @Override
-                                                        public void handleMessage(@NonNull Message msg) {
-                                                            super.handleMessage(msg);
-                                                            switch (msg.what){
-                                                                case A.DOWNLOADPREPARE:
-                                                                    setDownloadProgress("正在下载");
-                                                                    break;
-                                                                case A.DOWNLOADING:
-                                                                    setDownloadProgress(msg.arg1);
-                                                                    break;
-                                                                case A.DOWNLOADFINISH:
-                                                                    if (FileUtils.getFileMD5ToString(apksavefilepath).equals(newapkmd5.toUpperCase())) {
-                                                                        AppUtils.installApp(apksavefilepath);
+                                            HttpDownFileUtils.getInstance().downFileFromServiceToPublicDir(
+                                                    downloadurl,
+                                                    context,
+                                                    DIRECTORY_DOWNLOADS,
+                                                    (status, object, proGress, currentDownProGress, totalProGress) -> {
+                                                        //LogUtils.i(status,object,proGress,currentDownProGress,totalProGress);
+                                                        switch (status){
+                                                            case -1:
+                                                                //下载失败
+                                                                ThreadUtils.runOnUiThread(() -> {
+                                                                    ToastUtils.showShort("下载失败");
+                                                                    hideNegativeButton(false);
+                                                                    isupdating = false;
+                                                                    setDownloadProgress("立即更新");
+                                                                });
+                                                                break;
+                                                            case 1:
+                                                                //下载成功
+                                                                File file = null;
+                                                                if (object instanceof File){
+                                                                    file = (File) object;
+                                                                }else if (object instanceof Uri){
+                                                                    Uri uri = (Uri) object;
+                                                                    file = UriUtils.uri2File(uri);
+                                                                }
+                                                                ToastUtils.showShort("下载成功");
+                                                                File finalFile = file;
+                                                                ThreadUtils.runOnUiThread(() ->{
+                                                                    if (FileUtils.getFileMD5ToString(finalFile).equals(newapkmd5.toUpperCase())) {
+                                                                        AppUtils.installApp(finalFile);
                                                                         setDownloadProgress("立即安装");
                                                                         isupdating = false;
                                                                         isApkFullyDownloaded = true;
                                                                     }else{
-                                                                        ToastUtils.showShort("文件校验失败,请联系浅笑");
+                                                                        ToastUtils.showShort("文件校验失败,请重新下载或联系浅笑");
                                                                         FileUtils.delete(apksavefilepath);
                                                                         setDownloadProgress("文件校验失败");
                                                                     }
-
-                                                                    break;
-                                                                case A.DOWNLOADERROR:
-                                                                    String error = (String) msg.obj;
-                                                                    ToastUtils.showShort(error);
-                                                                    hideNegativeButton(false);
-                                                                    isupdating = false;
-                                                                    setDownloadProgress("立即更新");
-                                                                    break;
-                                                                case A.DOWNLOADPAUSE:
-                                                                    setDownloadProgress("下载被暂停");
-                                                                    break;
-                                                            }
+                                                                });
+                                                                break;
+                                                            case 0:
+                                                                //正在下载
+                                                                ThreadUtils.runOnUiThread(() -> setDownloadProgress(proGress));
+                                                                break;
                                                         }
-                                                    });
+                                                    }
+                                            );
                                         }
                                     });
                                     if(!issilent){

@@ -8,6 +8,7 @@
     <string name="right_bracket">）</string>
     <string name="line_break">\n</string>
     <string name="break1">-</string>
+    <string name="break2"> </string>
 
     <string name="welcome">欢迎使用LZU小工具</string>
     <string name="welcome2">一切只为简单</string>
@@ -17,6 +18,7 @@
 
     <string name="card_yu_e">校园卡余额：\n</string>
     <string name="card_dzzh_yu_e">电子账户余额：\n</string>
+    <string name="selectdorm">点击选择宿舍</string>
     <string name="card_blance">宿舍电量：</string>
 
     <string name="lzunet_logineduser">登录用户名：</string>

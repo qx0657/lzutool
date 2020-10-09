@@ -49,7 +49,8 @@ public class HttpConnectionUtil {
                     connection.setRequestProperty("Cookie",requestcookie);
                     connection.setConnectTimeout(8000);
                     connection.setReadTimeout(8000);
-                    if (connection.getResponseCode() == 302) {
+                    if (connection.getResponseCode() == 302
+                            || connection.getResponseCode() == 200) {
                         Map<String, List<String>> map = connection.getHeaderFields();
                         List<String> setcookies = map.get("Set-Cookie");
                         assert setcookies != null;
@@ -123,7 +124,6 @@ public class HttpConnectionUtil {
         }
         return s;
     }
-
 
     public String postRequset(final String url, final Map<String, String> map) {
         final StringBuilder sb = new StringBuilder();

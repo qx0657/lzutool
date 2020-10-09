@@ -36,6 +36,7 @@ public class QxjModel {
     }
 
     public interface GetListStuCallBack{
+        void onGetUserSomeInfoSuccess(String dh,String wx,String qq);
         void onGetListStuSuccess(QxjStatu qxjStatu);
         void onGetListStuError(String error);
     }
@@ -58,7 +59,12 @@ public class QxjModel {
                     if(response.optInt("code",-999)==0){
                         JSONObject jsonObject = Objects.requireNonNull(response.optJSONArray("data")).optJSONObject(0);
                         if(jsonObject !=null){
-                            //LogUtils.i(jsonObject);
+                            LogUtils.i(jsonObject);
+                            callBack.onGetUserSomeInfoSuccess(
+                                    jsonObject.optString("dh"),
+                                    jsonObject.optString("wx"),
+                                    jsonObject.optString("qq")
+                            );
                             Date startDate = TimeUtils.string2Date(jsonObject.optString("startDate"));
                             Date endDate = TimeUtils.string2Date(jsonObject.optString("endDate"));
                             boolean isPass = jsonObject.optString("qjzt").equals("09");
@@ -84,7 +90,7 @@ public class QxjModel {
                                 }
                             }
                         }else{
-                            callBack.onGetListStuError("请假数据获取失败");
+                            callBack.onGetListStuError("最近一次请假数据为空");
                         }
 
                     }else{

@@ -27,7 +27,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:paddingBottom="15dp"
+                android:paddingBottom="25dp"
                 android:orientation="vertical">
 
                 <androidx.cardview.widget.CardView
@@ -66,7 +66,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:padding="15dp"
-                                android:text="@{mainViewModelAppBar.user==null?@string/welcome2:mainViewModelAppBar.user.college+@string/left_bracket+mainViewModelAppBar.user.marjor+@string/right_bracket}" />
+                                android:text="@{mainViewModelAppBar.user==null?@string/welcome2:mainViewModelAppBar.user.college+(mainViewModelAppBar.user.marjor==null?@string/break2:(@string/left_bracket+mainViewModelAppBar.user.marjor+@string/right_bracket))}" />
 
                         </LinearLayout>
                         <LinearLayout
@@ -122,10 +122,12 @@
                             android:orientation="vertical">
 
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:id="@+id/tv_dormname"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:padding="15dp"
-                                android:text="@{mainViewModelAppBar.user==null||mainViewModelAppBar.user.dormInfo==null||mainViewModelAppBar.user.dormInfo.dorm==null?@string/break1:mainViewModelAppBar.user.dormInfo.dorm}" />
+                                android:onClick="@{v->mainViewModelAppBar.setDormInfo()}"
+                                android:text="@{mainViewModelAppBar.user==null||mainViewModelAppBar.user.dormInfo==null||mainViewModelAppBar.user.dormInfo.dorm==null?@string/selectdorm:mainViewModelAppBar.user.dormInfo.dorm}" />
 
                         </LinearLayout>
                         <LinearLayout
@@ -303,8 +305,9 @@
                             android:onClick="@{mainViewModelAppBar::LzuLibReserve}">
                             <ImageView
                                 android:layout_width="wrap_content"
-                                android:layout_height="60dp"
-                                android:src="@drawable/ic_book_outline"/>
+                                android:layout_height="48dp"
+                                android:padding="4dp"
+                                android:src="@drawable/ic_lib_outline"/>
                             <TextView
                                 android:layout_marginTop="8dp"
                                 android:text="图书馆预约"
@@ -322,8 +325,8 @@
                             android:onClick="@{mainViewModelAppBar::healthPunch}">
                             <ImageView
                                 android:layout_width="wrap_content"
-                                android:layout_height="60dp"
-                                android:src="@drawable/ic_medkit_outline"/>
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_punch_outline"/>
                             <TextView
                                 android:layout_marginTop="8dp"
                                 android:text="健康打卡"
@@ -341,8 +344,8 @@
                             android:onClick="@{mainViewModelAppBar::healthPunchCloudTrusteeship}">
                             <ImageView
                                 android:layout_width="wrap_content"
-                                android:layout_height="60dp"
-                                android:src="@drawable/ic_medkit_outline"/>
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_ytg_outline"/>
                             <TextView
                                 android:layout_marginTop="8dp"
                                 android:text="打卡云托管"
@@ -356,15 +359,14 @@
                             android:gravity="center"
                             android:padding="3dp"
                             android:orientation="vertical"
-                            android:onClick="@{v->mainViewModelAppBar.downSchoolResport()}">
+                            android:onClick="@{v -> mainViewModelAppBar.schoolBusInfo()}">
                             <ImageView
                                 android:layout_width="wrap_content"
-                                android:layout_height="60dp"
-                                android:src="@drawable/ic_school_outline"/>
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_bus_outline"/>
                             <TextView
-                                android:id="@+id/tv_downloadschoolresport"
                                 android:layout_marginTop="8dp"
-                                android:text="下载成绩单"
+                                android:text="校车时刻"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
                         </LinearLayout>
@@ -375,7 +377,25 @@
                         android:orientation="horizontal"
                         android:layout_marginTop="10dp"
                         android:gravity="center">
-
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:padding="3dp"
+                            android:orientation="vertical"
+                            android:onClick="@{v->mainViewModelAppBar.downSchoolResport()}">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_xzzm_outline"/>
+                            <TextView
+                                android:gravity="center"
+                                android:layout_marginTop="8dp"
+                                android:text="下载证明"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -386,8 +406,8 @@
                             android:onClick="@{v->mainViewModelAppBar.resportCardLoss(true)}">
                             <ImageView
                                 android:layout_width="wrap_content"
-                                android:layout_height="60dp"
-                                android:src="@drawable/ic_lock_closed_outline"/>
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_lock_outline"/>
                             <TextView
                                 android:layout_marginTop="8dp"
                                 android:text="校园卡挂失"
@@ -404,8 +424,8 @@
                             android:onClick="@{v->mainViewModelAppBar.resportCardLoss(false)}">
                             <ImageView
                                 android:layout_width="wrap_content"
-                                android:layout_height="60dp"
-                                android:src="@drawable/ic_lock_open_outline"/>
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_unlock_outline"/>
                             <TextView
                                 android:layout_marginTop="8dp"
                                 android:text="校园卡解挂"
@@ -419,14 +439,42 @@
                             android:gravity="center"
                             android:padding="3dp"
                             android:orientation="vertical"
-                            android:onClick="@{v->mainViewModelAppBar.more()}">
+                            android:onClick="@{v->mainViewModelAppBar.lzuFileUpload()}">
                             <ImageView
                                 android:layout_width="wrap_content"
-                                android:layout_height="60dp"
-                                android:src="@drawable/ic_grid_outline"/>
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_cloudfile_outline"/>
+                            <TextView
+                                android:layout_marginTop="8dp"
+                                android:text="LZU文件床"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center">
+
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:padding="10dp"
+                            android:orientation="vertical">
                             <TextView
                                 android:layout_marginTop="8dp"
                                 android:text="更多功能 敬请期待"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                            <TextView
+                                android:layout_marginTop="8dp"
+                                android:text="如您有想要的功能，欢迎联系浅笑反馈"
+                                android:textSize="12sp"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
                         </LinearLayout>

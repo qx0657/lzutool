@@ -61,6 +61,10 @@ public class User extends BaseObservable implements Serializable {
     @Bindable
     private QxjModel.QxjStatu qxjStatu;
 
+    private String qq;
+    private String wx;
+    private String dh;
+
     @Bindable
     public String getCardid() {
         return cardid;
@@ -156,5 +160,29 @@ public class User extends BaseObservable implements Serializable {
 
     public void setQxjStatu(QxjModel.QxjStatu qxjStatu) {
         this.qxjStatu = qxjStatu;
+    }
+
+    public String getQq() {
+        return qq;
+    }
+
+    public void setQq(String qq) {
+        this.qq = qq;
+    }
+
+    public String getWx() {
+        return wx;
+    }
+
+    public void setWx(String wx) {
+        this.wx = wx;
+    }
+
+    public String getDh() {
+        return dh;
+    }
+
+    public void setDh(String dh) {
+        this.dh = dh;
     }
 }

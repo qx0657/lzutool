@@ -30,6 +30,10 @@ public class MySpUtils {
         spUtils = SPUtils.getInstance(MODE);
     }
 
+    public static void remove(String key){
+        spUtils.remove(key);
+    }
+
     public static boolean contain(String key){
         return spUtils.contains(key);
     }

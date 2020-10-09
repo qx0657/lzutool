@@ -55,19 +55,19 @@ public class AddLabelActivity extends BaseDataBadingActivity<ActivityAddlabelBin
         showBackButton();
         List<LabelData> labelDataList = new ArrayList<>();
         labelDataList.add(new LabelData(
-                R.drawable.ic_book_outline,
+                R.drawable.ic_lib_outline,
                 "图书馆预约",
                 LzuLibReserveActivity.class.getName()));
         labelDataList.add(new LabelData(
-                R.drawable.ic_medkit_outline,
+                R.drawable.ic_punch_outline,
                 "健康打卡",
                 HealthPunchActivity.class.getName()));
         labelDataList.add(new LabelData(
-                R.drawable.ic_lock_closed_outline,
+                R.drawable.ic_lock_outline,
                 "校园卡挂失",
                 CardReportLossActivity.class.getName()));
         labelDataList.add(new LabelData(
-                R.drawable.ic_lock_open_outline,
+                R.drawable.ic_unlock_outline,
                 "校园卡解挂",
                 CancleCardReportLossActivity.class.getName()));
         LabelBindAdapter adapter = new LabelBindAdapter(labelDataList);

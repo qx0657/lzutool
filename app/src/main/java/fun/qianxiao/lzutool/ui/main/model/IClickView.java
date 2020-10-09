@@ -32,8 +32,10 @@ public interface IClickView extends ILoadingView {
      */
     void copyIp();
 
+    void schoolBusInfo();
+
     /**
-     * 下载成绩单点击
+     * 下载在读证明/成绩单 点击
      */
     void downSchoolResport();
 
@@ -43,5 +45,10 @@ public interface IClickView extends ILoadingView {
      */
     void resportCardLoss(boolean isLose);
 
-    void more();
+    /**
+     * LZU文件床 点击
+     */
+    void lzuFileUpload();
+
+    void setDormInfo();
 }

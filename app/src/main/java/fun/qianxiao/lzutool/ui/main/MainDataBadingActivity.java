@@ -7,10 +7,12 @@ import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Menu;
+import android.widget.LinearLayout;
 
 import com.blankj.utilcode.util.BarUtils;
 import com.blankj.utilcode.util.ToastUtils;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 
@@ -196,6 +198,8 @@ public class MainDataBadingActivity
             binding.drawerLayout.openDrawer(Gravity.LEFT,false);
             binding.navView.getMenu().performIdentifierAction(R.id.drawer_menu_themecolor,0);
         }
+        //默认合上校园卡卡片
+        //openOrCloseSchoolNetArea(null);
         new CheckUpdateManager(context).check(true);
     }
 
@@ -215,6 +219,12 @@ public class MainDataBadingActivity
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        binding.getMainViewModel().onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -242,6 +252,11 @@ public class MainDataBadingActivity
             binding.layoutAppbarmain.llSchoolNetArea.setVisibility(View.GONE);
             binding.layoutAppbarmain.ivSchoolNetArea.setImageResource(R.drawable.ic_chevron_down_outline);
         }
+    }
+
+    @Override
+    public void pleaseSelectDorm() {
+        binding.layoutAppbarmain.tvDormname.setText("点击选择宿舍");
     }
 
     @SuppressLint("RtlHardcoded")

@@ -4,8 +4,6 @@ import android.app.Application;
 
 import com.baidu.mobstat.StatService;
 import com.blankj.utilcode.util.LogUtils;
-
-import fun.qianxiao.lzutool.utils.MySpUtils;
 import fun.qianxiao.lzutool.utils.MyVolleyManager;
 
 /**

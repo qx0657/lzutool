@@ -96,7 +96,9 @@ public class LzuloginModel {
                                                 user.setName(userInfo.optString("xm"));
                                                 user.setPhone(userInfo.optString("yddh"));
                                                 user.setCollege(userInfo.optString("dwmc"));
-                                                user.setMarjor(userInfo.optString("zymc"));
+                                                if(!userInfo.isNull("zymc")){
+                                                    user.setMarjor(userInfo.optString("zymc"));
+                                                }
                                                 user.setAccnum(userInfo.optString("etong_acc_no"));
                                                 loginCallback.onLoginSuccess(user);
                                             }else{
@@ -202,10 +204,10 @@ public class LzuloginModel {
     }
 
     /**
-     * tgt登录智慧学工获取Jsessionid、Route
+     * tgt登录智慧学/研工获取Jsessionid、Route
      * @param tgt
      */
-    public void loginZhxgGetJsessionidAndRoute(String tgt,LoginZhxgGetJsessionidAndRouteCallBack callBack){
+    public void loginZhxgGetJsessionidAndRoute(String tgt,boolean isYjs,LoginZhxgGetJsessionidAndRouteCallBack callBack){
         /*StringRequest loginZhxgGetJsessionidAndRouteJsonObjectRequest = new StringRequest(
                 Request.Method.GET,
                 "http://zhxg.lzu.edu.cn/lzuyz/sys/sysuser/loginPortal",
@@ -242,7 +244,9 @@ public class LzuloginModel {
         };
         MyVolleyManager.getRequestQueue().add(loginZhxgGetJsessionidAndRouteJsonObjectRequest);*/
         //volley不能禁止302，改用HttpURLConnection携带tgt的cookie302请求获取响应cookie(Jsessionid、Route)
-        String cookies = HttpConnectionUtil.getHttp().request302getResponseCookie("http://zhxg.lzu.edu.cn/lzuyz/sys/sysuser/loginPortal",
+        String cookies = HttpConnectionUtil.getHttp().request302getResponseCookie(
+                isYjs?"http://yjsxg.lzu.edu.cn/lzuygb/sys/sysuser/loginPortal":
+                        "http://zhxg.lzu.edu.cn/lzuyz/sys/sysuser/loginPortal",
                 "iPlanetDirectoryPro="+tgt);
         if(!TextUtils.isEmpty(cookies)){
             callBack.onLoginZhxgGetJsessionidAndRouteSuccess(cookies);
@@ -269,6 +273,27 @@ public class LzuloginModel {
             callBack.onLoginEcardGetSidSuccess(MyCookieUtils.cookieStr2map(cookies));
         }else{
             callBack.onLoginEcardGetSidError("智慧一卡通登录失败");
+        }
+    }
+
+    public interface LoginOACallBack{
+        void onLoginOASuccess(String cookie_JSESSIONID);
+        void onLoginOAErrot(String error);
+    }
+
+    /**
+     * tgt登录OA系统
+     * @param tgt
+     * @param callBack
+     */
+    public void loginOA(String tgt,LoginOACallBack callBack){
+        String cookies = HttpConnectionUtil.getHttp().request302getResponseCookie(
+                "http://oa.lzu.edu.cn/jsoa/LDCheckUser.do",
+                "iPlanetDirectoryPro="+tgt);
+        if(!TextUtils.isEmpty(cookies)){
+            callBack.onLoginOASuccess(cookies);
+        }else{
+            callBack.onLoginOAErrot("智慧一卡通登录失败");
         }
     }
 }
