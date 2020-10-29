@@ -122,7 +122,7 @@ public abstract class BaseDataBadingActivity<T extends ViewDataBinding> extends 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish();
+            onBackPressed();
         }
         return super.onOptionsItemSelected(item);
     }

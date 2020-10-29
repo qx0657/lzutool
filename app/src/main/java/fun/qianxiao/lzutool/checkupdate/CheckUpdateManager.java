@@ -152,6 +152,7 @@ public class CheckUpdateManager implements ILoadingView {
                                             hideNegativeButton(true);
                                             HttpDownFileUtils.getInstance().downFileFromServiceToPublicDir(
                                                     downloadurl,
+                                                    "",
                                                     context,
                                                     DIRECTORY_DOWNLOADS,
                                                     (status, object, proGress, currentDownProGress, totalProGress) -> {

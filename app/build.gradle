@@ -69,6 +69,7 @@ dependencies {
 
     //okhttp 文件上传
     implementation "com.squareup.okhttp3:okhttp:4.9.0"
-    //okhttp plus
-    //implementation 'com.github.zhaokaiqiang.okhttpplus:library:1.0.0'
+    //ant.jar主要使用其中ZipOutputStream解决压缩包文件名中文乱码
+    //implementation 'org.apache.ant:ant:1.7.1'
+
 }

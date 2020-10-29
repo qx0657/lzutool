@@ -1,4 +1,4 @@
-package fun.qianxiao.lzutool.ui.main.model.lzufileupload.uploadprogress;
+package fun.qianxiao.lzutool.okhttpupdownload;
 
 import java.io.Serializable;
 

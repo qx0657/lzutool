@@ -457,7 +457,31 @@
                         android:orientation="horizontal"
                         android:layout_marginTop="10dp"
                         android:gravity="center">
-
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:padding="3dp"
+                            android:orientation="vertical"
+                            android:onClick="@{v -> mainViewModelAppBar.lzuPersonalnf()}">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_bus_outline"/>
+                            <TextView
+                                android:layout_marginTop="8dp"
+                                android:text="LZU网盘"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center">
 
                         <LinearLayout
                             android:layout_width="0dp"

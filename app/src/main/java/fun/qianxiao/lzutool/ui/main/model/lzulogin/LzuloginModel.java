@@ -7,7 +7,10 @@ import android.util.Base64;
 import androidx.fragment.app.FragmentActivity;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.Header;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
+import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.blankj.utilcode.util.ConvertUtils;
@@ -15,19 +18,31 @@ import com.blankj.utilcode.util.EncryptUtils;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.MapUtils;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import fun.qianxiao.lzutool.bean.User;
 import fun.qianxiao.lzutool.utils.HttpConnectionUtil;
 import fun.qianxiao.lzutool.utils.MyCookieUtils;
 import fun.qianxiao.lzutool.utils.MySpUtils;
 import fun.qianxiao.lzutool.utils.MyVolleyManager;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Cookie;
+import okhttp3.CookieJar;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
 
 /**
  * LZU登录
@@ -295,5 +310,107 @@ public class LzuloginModel {
         }else{
             callBack.onLoginOAErrot("智慧一卡通登录失败");
         }
+    }
+
+    /*public interface LoginMyLzuCallBack{
+        void onLoginMyLzuSuccess(String cookie_mylzu);
+        void onLoginMyLzuError(String error);
+    }
+
+    *//**
+     * 登录个人工作台
+     * @param tgt
+     * @param st
+     * @param callBack
+     *//*
+    public void loginMyLzu(String tgt,String st,LoginMyLzuCallBack callBack){
+        //String cookie = HttpConnectionUtil.getHttp().request302getResponseCookie("http://my.lzu.edu.cn:8080/login?service=http://my.lzu.edu.cn","");
+        Map<String,String> map = new HashMap<>();
+        map.put("CASTGC",tgt);
+        map.put("iPlanetDirectoryPro",tgt);
+        map.put("SSO_PORTAL_SESSION_KEY","hugb16");
+        String cookie = HttpConnectionUtil.getHttp().request302getResponseCookie("http://my.lzu.edu.cn/?ticket="+st,MyCookieUtils.map2cookieStr(map));
+        LogUtils.i(cookie);
+    }*/
+
+    public interface LoginLzuMailCallBack{
+        void onLoginLzuMailSuccess(String coolie_mail);
+        void onLoginLzuMailError(String error);
+    }
+
+    /**
+     * 登录兰大邮箱
+     * @param callBack
+     */
+    public void loginLzuMail(String login_pid,String login_pwd,LoginLzuMailCallBack callBack){
+        Map<String,String> map = new HashMap<>();
+        map.put("face","undefined");
+        map.put("locale","zh_CN");
+        map.put("saveUsername","true");
+        map.put("uid",login_pid+"@lzu.edu.cn");
+        String pattern = "sid=([A-Za-z]{32})\"";
+        Pattern r = Pattern.compile(pattern);
+        StringRequest stringRequest1 = new StringRequest(
+                Request.Method.POST,
+                "https://mail.lzu.edu.cn/coremail/index.jsp?cus=1&sid=",
+                response1 -> {
+                    Matcher m = r.matcher(response1);
+                    if(m.find()){
+                        String newsid = m.group(1);
+                        map.put("Coremail.sid",newsid);
+                        callBack.onLoginLzuMailSuccess(MyCookieUtils.map2cookieStr(map));
+                    }else{
+                        callBack.onLoginLzuMailError("登录失败001（未找到sid）");
+                    }
+                },error -> callBack.onLoginLzuMailError("LoginCoremailError("+error.getMessage()+")")){
+            @Override
+            protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                StringBuilder rsp_cookies = new StringBuilder();
+                for (Header header : response.allHeaders) {
+                    if(header.getName().equals("Set-Cookie")){
+                        String setcookie = header.getValue();
+                        setcookie = setcookie.substring(0, !setcookie.contains(" Path=") ?0:setcookie.indexOf(" Path="));
+                        rsp_cookies.append(setcookie);
+                    }
+                }
+                map.putAll(MyCookieUtils.cookieStr2map(rsp_cookies.toString()));
+                return super.parseNetworkResponse(response);
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = super.getHeaders();
+                if(headers == null || headers.equals(Collections.emptyMap())){
+                    headers = new HashMap<>();
+                }
+                headers.put("Cookie",MyCookieUtils.map2cookieStr(map));
+                //headers.put("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0");
+                return headers;
+            }
+
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> map = new HashMap<>();
+                map.put("locale", "zh_CN");
+                map.put("nodetect", "false");
+                map.put("destURL", "");
+                map.put("supportLoginDevice", "true");
+                map.put("accessToken", "");
+                map.put("timestamp", "");
+                map.put("signature", "");
+                map.put("nonce", "");
+                map.put("device", "{\"uuid\":\"webmail_windows\",\"imie\":\"webmail_windows\",\"friendlyName\":\"firefox+81\",\"model\":\"windows\",\"os\":\"windows\",\"osLanguage\":\"zh-CN\",\"deviceType\":\"Webmail\"}");
+                map.put("supportDynamicPwd", "true");
+                map.put("supportBind2FA", "true");
+                map.put("authorizeDevice", "");
+                map.put("loginType", "");
+                map.put("uid", login_pid);
+                map.put("password", login_pwd);
+                map.put("action:login", "");
+                return map;
+            }
+        };
+        MyVolleyManager.getRequestQueue().add(stringRequest1);
+
     }
 }

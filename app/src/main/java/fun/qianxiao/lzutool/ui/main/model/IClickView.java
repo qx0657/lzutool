@@ -50,5 +50,10 @@ public interface IClickView extends ILoadingView {
      */
     void lzuFileUpload();
 
+    /**
+     * 个人网盘
+     */
+    void lzuPersonalnf();
+
     void setDormInfo();
 }

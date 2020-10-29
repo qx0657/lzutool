@@ -82,6 +82,9 @@
         <activity
             android:name=".ui.about.AboutActivity"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".ui.personalinf.PersonalnfActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
 
     </application>
 

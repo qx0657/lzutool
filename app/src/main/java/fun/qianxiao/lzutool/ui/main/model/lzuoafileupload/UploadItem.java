@@ -1,4 +1,4 @@
-package fun.qianxiao.lzutool.ui.main.model.lzufileupload;
+package fun.qianxiao.lzutool.ui.main.model.lzuoafileupload;
 
 /**
  * Create by QianXiao

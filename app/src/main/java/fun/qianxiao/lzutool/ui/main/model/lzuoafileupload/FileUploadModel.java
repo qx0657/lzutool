@@ -1,22 +1,19 @@
-package fun.qianxiao.lzutool.ui.main.model.lzufileupload;
+package fun.qianxiao.lzutool.ui.main.model.lzuoafileupload;
 
 import android.text.TextUtils;
 
-import com.blankj.utilcode.util.EncryptUtils;
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ThreadUtils;
-import com.blankj.utilcode.util.TimeUtils;
 
 import java.io.File;
 import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import fun.qianxiao.lzutool.ui.main.model.lzufileupload.uploadprogress.RequestProgressBody;
+import fun.qianxiao.lzutool.okhttpupdownload.uploadprogress.RequestProgressBody;
 import fun.qianxiao.lzutool.utils.HttpConnectionUtil;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
@@ -25,7 +22,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
-import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -54,6 +50,12 @@ public class FileUploadModel {
         void onError(int currentfile,String error);
     }
 
+    /**
+     * 文件批量串形上传
+     * @param cookie_jsessionid OA_Cookie
+     * @param filepaths 本都文件路径List
+     * @param progressListener
+     */
     public void upload(String cookie_jsessionid, List<String> filepaths,MyProgressListener progressListener){
         int filenum = filepaths.size();
         final int[] currentFile = {0};

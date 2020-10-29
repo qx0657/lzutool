@@ -1,5 +1,6 @@
-package fun.qianxiao.lzutool.ui.main.model.lzufileupload.uploadprogress;
+package fun.qianxiao.lzutool.okhttpupdownload.uploadprogress;
 
+import fun.qianxiao.lzutool.okhttpupdownload.Progress;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
@@ -14,12 +15,12 @@ import okio.Sink;
 public class RequestProgressBody extends RequestBody {
 
     private final RequestBody requestBody;
-    private final ProgressListener progressListener;
+    private final UploadProgressListener uploadProgressListener;
     private BufferedSink bufferedSink;
 
-    public RequestProgressBody(RequestBody requestBody, ProgressListener progressListener) {
+    public RequestProgressBody(RequestBody requestBody, UploadProgressListener uploadProgressListener) {
         this.requestBody = requestBody;
-        this.progressListener = progressListener;
+        this.uploadProgressListener = uploadProgressListener;
     }
 
     public MediaType contentType() {
@@ -52,8 +53,8 @@ public class RequestProgressBody extends RequestBody {
                     contentLength = contentLength();
                 }
                 bytesWritten += byteCount;
-                if (progressListener != null) {
-                    progressListener.onProgress(new Progress(bytesWritten, contentLength, bytesWritten == contentLength));
+                if (uploadProgressListener != null) {
+                    uploadProgressListener.onProgress(new Progress(bytesWritten, contentLength, bytesWritten == contentLength));
                 }
             }
         };

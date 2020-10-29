@@ -2,16 +2,13 @@ package fun.qianxiao.lzutool.utils.android10downloadfile;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -25,8 +22,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 
-import androidx.annotation.RequiresApi;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -34,7 +33,6 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-import static android.os.Environment.DIRECTORY_DCIM;
 import static android.os.Environment.DIRECTORY_DOWNLOADS;
 import static android.os.Environment.DIRECTORY_MOVIES;
 import static android.os.Environment.DIRECTORY_MUSIC;
@@ -317,16 +315,16 @@ public class HttpDownFileUtils {
      * @param downPathUrl 下载文件的路径，需要包含后缀
      * @param inserType 存储类型，可选参数 DIRECTORY_PICTURES  ,DIRECTORY_MOVIES  ,DIRECTORY_MUSIC ，DIRECTORY_DOWNLOADS
      **/
-    public void downFileFromServiceToPublicDir(String downPathUrl, Context context, String inserType, OnFileDownListener onFileDownListener) {
+    public void downFileFromServiceToPublicDir(String downPathUrl,String requestcookie, Context context, String inserType, OnFileDownListener onFileDownListener) {
         if (inserType.equals(DIRECTORY_DOWNLOADS)){
             if (Build.VERSION.SDK_INT>=29){//android 10
-                downUnKnowFileFromService(downPathUrl,context,inserType,onFileDownListener);//返回的是uri
+                downUnKnowFileFromService(downPathUrl,requestcookie,context,inserType,onFileDownListener);//返回的是uri
             }else {
-                downUnKnowFileFromService(downPathUrl,onFileDownListener);//返回的是file
+                downUnKnowFileFromService(downPathUrl,requestcookie,onFileDownListener);//返回的是file
             }
         }else {
             //下载到沙盒外部公共目录
-            downMusicVideoPicFromService(downPathUrl,context,inserType,onFileDownListener);
+            downMusicVideoPicFromService(downPathUrl,requestcookie,context,inserType,onFileDownListener);
         }
     }
 
@@ -335,7 +333,7 @@ public class HttpDownFileUtils {
      * @author : gaoxiaoxiong
      * @description:下载文件到DIRECTORY_DOWNLOADS，适用于android<=9
      **/
-    private void downUnKnowFileFromService(final String downPathUrl,final OnFileDownListener onFileDownListener){
+    private void downUnKnowFileFromService(final String downPathUrl,String requestcookie,final OnFileDownListener onFileDownListener){
         Observable.just(downPathUrl).subscribeOn(Schedulers.newThread()).map(new Function<String, File>() {
             @Override
             public File apply(String s) throws Exception {
@@ -343,6 +341,7 @@ public class HttpDownFileUtils {
                 URL url = new URL(downPathUrl);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setConnectTimeout(30 * 1000);
+                conn.setRequestProperty("Cookie",requestcookie);
                 InputStream is = conn.getInputStream();
                 long time = System.currentTimeMillis();
                 int code = conn.getResponseCode();
@@ -416,7 +415,14 @@ public class HttpDownFileUtils {
             }
         });
     }
-
+    public static byte[] getBytes(char[] chars) {
+        Charset cs = Charset.forName("UTF-8");
+        CharBuffer cb = CharBuffer.allocate(chars.length);
+        cb.put(chars);
+        cb.flip();
+        ByteBuffer bb = cs.encode(cb);
+        return bb.array();
+    }
     /**
      * 如果是要存放到沙盒外部目录，就需要使用此方法
      * @date: 创建时间:2019/12/11
@@ -425,7 +431,7 @@ public class HttpDownFileUtils {
      * @param downPathUrl 下载文件的路径，需要包含后缀
      * @param inserType 存储类型 DIRECTORY_DOWNLOADS
      **/
-    private void downUnKnowFileFromService(final String downPathUrl,final Context context, String inserType,final OnFileDownListener onFileDownListener){
+    private void downUnKnowFileFromService(final String downPathUrl,String requestcookie,final Context context, String inserType,final OnFileDownListener onFileDownListener){
         if (inserType.equals(DIRECTORY_DOWNLOADS)){
             Observable.just(downPathUrl).subscribeOn(Schedulers.newThread()).map(new Function<String, Uri>() {
                 @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -436,6 +442,7 @@ public class HttpDownFileUtils {
                         URL url = new URL(downPathUrl);
                         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                         conn.setConnectTimeout(30 * 1000);
+                        conn.setRequestProperty("Cookie",requestcookie);
                         InputStream is = conn.getInputStream();
                         long time = System.currentTimeMillis();
                         int code = conn.getResponseCode();
@@ -535,7 +542,7 @@ public class HttpDownFileUtils {
      * @param downPathUrl 下载文件的路径，需要包含后缀
      * @param inserType 存储类型，可选参数 DIRECTORY_PICTURES  ,DIRECTORY_MOVIES  ,DIRECTORY_MUSIC
      **/
-    private void downMusicVideoPicFromService(final String downPathUrl,final Context context,final String inserType,final OnFileDownListener onFileDownListener){
+    private void downMusicVideoPicFromService(final String downPathUrl,String requestcookie,final Context context,final String inserType,final OnFileDownListener onFileDownListener){
         Observable.just(downPathUrl).subscribeOn(Schedulers.newThread()).map(new Function<String, Uri>() {
             @Override
             public Uri apply(String s) throws Exception {
@@ -544,6 +551,7 @@ public class HttpDownFileUtils {
                     URL url = new URL(downPathUrl);
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setConnectTimeout(30 * 1000);
+                    conn.setRequestProperty("Cookie",requestcookie);
                     InputStream is = conn.getInputStream();
                     long time = System.currentTimeMillis();
                     int code = conn.getResponseCode();

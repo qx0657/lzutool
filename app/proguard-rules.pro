@@ -107,12 +107,10 @@
 #-keep class * extends android.app.Dialog
 
 #保留自定义视图类
--keep class com.qx.pjbj.view.MySearchView {*;}
--keep class com.qx.pjbj.view.OvalImageView {*;}
+
 
 #实体
--keep class com.qx.pjbj.data.PjNote {*;}
--keep class com.qx.pjbj.data.MyUserInfo {*;}
+
 
 #第三方库
 #BlankJ AndroidUtilCode

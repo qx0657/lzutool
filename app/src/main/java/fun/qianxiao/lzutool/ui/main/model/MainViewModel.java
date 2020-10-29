@@ -39,7 +39,6 @@ import com.blankj.utilcode.util.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -54,15 +53,16 @@ import fun.qianxiao.lzutool.ui.main.model.baseinfo.GetBaseInfoModel;
 import fun.qianxiao.lzutool.ui.main.model.cardreportlossorcanclereportloss.CardReportLossModel;
 import fun.qianxiao.lzutool.ui.main.model.healthpunch.HealthPunchModel;
 import fun.qianxiao.lzutool.ui.main.model.healthpunchcloudtrusteeship.CloudTrusteeshipModel;
-import fun.qianxiao.lzutool.ui.main.model.lzufileupload.view.UploadFragmentDialog;
+import fun.qianxiao.lzutool.ui.main.model.lzuoafileupload.view.UploadFragmentDialog;
 import fun.qianxiao.lzutool.ui.main.model.lzulibreserve.LzulibreserveModel;
 import fun.qianxiao.lzutool.ui.main.model.lzulogin.LzuloginModel;
 import fun.qianxiao.lzutool.ui.main.IMainView;
 import fun.qianxiao.lzutool.ui.main.MainDataBadingActivity;
-import fun.qianxiao.lzutool.ui.main.model.lzufileupload.FileUploadModel;
+import fun.qianxiao.lzutool.ui.main.model.lzuoafileupload.FileUploadModel;
 import fun.qianxiao.lzutool.ui.main.model.qxj.QxjModel;
 import fun.qianxiao.lzutool.ui.main.model.schoolbus.SchoolBusModel;
 import fun.qianxiao.lzutool.ui.main.model.undergraduatecertificate.SchoolReportDownloadModel;
+import fun.qianxiao.lzutool.ui.personalinf.PersonalnfActivity;
 import fun.qianxiao.lzutool.ui.setting.SettingFragment;
 import fun.qianxiao.lzutool.utils.ClipboardUtils;
 import fun.qianxiao.lzutool.utils.MyCookieUtils;
@@ -701,7 +701,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                                                                 try {
                                                                     context.startActivity(intent);
                                                                 } catch (ActivityNotFoundException e) {
-                                                                    ToastUtils.showShort("No Application Available to View PDF");
+                                                                    ToastUtils.showShort("No Application Available To View PDF");
                                                                 }
                                                             })
                                                             .show();
@@ -865,6 +865,25 @@ public class MainViewModel extends BaseObservable implements IClickView {
             return;
         }
         startChooseFileIntent();
+    }
+
+    @Override
+    public void lzuPersonalnf() {
+        if(user == null){
+            ToastUtils.showShort("请登录后使用");
+            lzuloginModel.showLoginDialog();
+            return;
+        }
+        String login_uid = MySpUtils.getString("login_uid");
+        String login_pwd = MySpUtils.getString("login_pwd");
+        if(TextUtils.isEmpty(login_uid)||TextUtils.isEmpty(login_pwd)){
+            return;
+        }
+        Intent intent = new Intent(context, PersonalnfActivity.class);
+        intent.putExtra("user_mailpf",user.getMailpf());
+        intent.putExtra("login_pwd",login_pwd);
+        context.startActivity(intent);
+
     }
 
     private void startChooseFileIntent(){

@@ -31,6 +31,9 @@ public class MyLoadingDialog extends BaseAlertDialog {
 
     public void setMessage(String message) {
         this.message = message;
+        if(tv_message_dialogloading!=null){
+            tv_message_dialogloading.setText(message);
+        }
     }
 
     @Override

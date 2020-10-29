@@ -1,4 +1,4 @@
-package fun.qianxiao.lzutool.ui.main.model.lzufileupload;
+package fun.qianxiao.lzutool.ui.main.model.lzuoafileupload;
 
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -15,9 +15,7 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.blankj.utilcode.util.UriUtils;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import fun.qianxiao.lzutool.R;
 import fun.qianxiao.lzutool.utils.ClipboardUtils;

@@ -46,12 +46,17 @@ public class HttpConnectionUtil {
                     //拦截302
                     connection.setInstanceFollowRedirects(false);
                     connection.setRequestMethod("GET");
+                    if(url.contains("http://my.lzu.edu.cn/?ticket=")){
+                        connection.setRequestProperty("Referer","http://my.lzu.edu.cn:8080/login?service=http://my.lzu.edu.cn");
+                        connection.setRequestProperty("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0");
+                    }
                     connection.setRequestProperty("Cookie",requestcookie);
                     connection.setConnectTimeout(8000);
                     connection.setReadTimeout(8000);
                     if (connection.getResponseCode() == 302
                             || connection.getResponseCode() == 200) {
                         Map<String, List<String>> map = connection.getHeaderFields();
+                        //LogUtils.i("Location:\n"+map.get("Location"));
                         List<String> setcookies = map.get("Set-Cookie");
                         assert setcookies != null;
                         for (String setcookie : setcookies) {

@@ -1,4 +1,4 @@
-package fun.qianxiao.lzutool.ui.main.model.lzufileupload.view;
+package fun.qianxiao.lzutool.ui.main.model.lzuoafileupload.view;
 
 import android.os.Build;
 import android.widget.TextView;
@@ -7,17 +7,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.blankj.utilcode.util.LogUtils;
-import com.blankj.utilcode.util.ToastUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 import fun.qianxiao.lzutool.R;
 import fun.qianxiao.lzutool.base.BaseDialogFragment;
-import fun.qianxiao.lzutool.ui.main.model.lzufileupload.FileUploadModel;
-import fun.qianxiao.lzutool.ui.main.model.lzufileupload.UploadAdapter;
-import fun.qianxiao.lzutool.ui.main.model.lzufileupload.UploadItem;
+import fun.qianxiao.lzutool.ui.main.model.lzuoafileupload.FileUploadModel;
+import fun.qianxiao.lzutool.ui.main.model.lzuoafileupload.UploadAdapter;
+import fun.qianxiao.lzutool.ui.main.model.lzuoafileupload.UploadItem;
 
 /**
  * Create by QianXiao

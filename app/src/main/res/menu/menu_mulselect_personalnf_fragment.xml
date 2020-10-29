@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menuitem_allselect_mulselect_personalnf_fragment"
+        android:title="全选"
+        app:showAsAction="always"/>
+    <!--右侧设置条目，收起-->
+    <item
+        android:id="@+id/menuitem_reverseselect_mulselect_personalnf_fragment"
+        android:title="反选"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menuitem_allnoselect_mulselect_personalnf_fragment"
+        android:title="全不选"
+        app:showAsAction="never" />
+</menu>
