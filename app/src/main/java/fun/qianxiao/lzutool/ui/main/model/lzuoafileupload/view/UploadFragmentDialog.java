@@ -26,9 +26,11 @@ public class UploadFragmentDialog extends BaseDialogFragment implements FileUplo
     private RecyclerView recyclerView;
     private TextView tv_allpercent_uploaddialogfragment;
     private UploadAdapter adapter;
+    private boolean isInf = false;
 
-    public UploadFragmentDialog(List<String> uploadFiles) {
+    public UploadFragmentDialog(List<String> uploadFiles,boolean isInf) {
         uploadItems = new ArrayList<>();
+        this.isInf = isInf;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             uploadFiles.forEach(s -> {
                 UploadItem uploadItem = new UploadItem();
@@ -66,7 +68,7 @@ public class UploadFragmentDialog extends BaseDialogFragment implements FileUplo
     @Override
     protected void initData() {
         setCancelable(false);
-        adapter = new UploadAdapter(uploadItems);
+        adapter = new UploadAdapter(uploadItems,isInf);
         recyclerView.setAdapter(adapter);
     }
 
@@ -94,5 +96,6 @@ public class UploadFragmentDialog extends BaseDialogFragment implements FileUplo
         LogUtils.e(currentfile,error);
         uploadItems.get(currentfile-1).setError(error);
         adapter.notifyItemChanged(currentfile-1,1);
+        setCancelable(true);
     }
 }

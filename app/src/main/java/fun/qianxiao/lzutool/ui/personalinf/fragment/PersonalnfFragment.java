@@ -3,6 +3,7 @@ package fun.qianxiao.lzutool.ui.personalinf.fragment;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
@@ -16,8 +17,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -45,12 +48,14 @@ import fun.qianxiao.lzutool.R;
 import fun.qianxiao.lzutool.base.BaseFragment;
 import fun.qianxiao.lzutool.okhttpupdownload.Progress;
 import fun.qianxiao.lzutool.okhttpupdownload.downloadprogress.DownloadProgressListener;
+import fun.qianxiao.lzutool.ui.main.model.lzuoafileupload.FileUploadModel;
 import fun.qianxiao.lzutool.ui.personalinf.bean.FileOrFolderItem;
 import fun.qianxiao.lzutool.ui.personalinf.fragment.adapter.FileOrFolderAdapter;
 import fun.qianxiao.lzutool.ui.personalinf.model.lzupersonalnf.PersonalnfModel;
 import fun.qianxiao.lzutool.ui.personalinf.IPersonalnfView;
 import fun.qianxiao.lzutool.utils.ClipboardUtils;
 import fun.qianxiao.lzutool.utils.android10downloadfile.OnFileDownListener;
+import okhttp3.MediaType;
 
 import static android.util.TypedValue.COMPLEX_UNIT_SP;
 
@@ -70,6 +75,7 @@ public class PersonalnfFragment extends BaseFragment implements IPersoncalnfFrag
     private MenuItem.OnMenuItemClickListener[][] menuItemClickListener = new MenuItem.OnMenuItemClickListener[2][3];
     private int currentFid = 0;
     private String currentDisplayDir = "个人网盘";
+    private final int CHOISEFILE_REQUESTCODE = 1201;
 
     public PersonalnfFragment(IPersonalnfView iPersonalnfView) {
         this.iPersonalnfView = iPersonalnfView;
@@ -140,7 +146,31 @@ public class PersonalnfFragment extends BaseFragment implements IPersoncalnfFrag
                 },
                 //上传文件
                 item -> {
+                    if(!PermissionUtils.isGranted(Manifest.permission.WRITE_EXTERNAL_STORAGE)){
+                        PermissionUtils.permission(PermissionConstants.STORAGE)
+                                .rationale((activity, shouldRequest) -> shouldRequest.again(true))
+                                .callback(new PermissionUtils.FullCallback() {
+                                    @Override
+                                    public void onGranted(@NonNull List<String> granted) {
+                                        startChooseFileIntent();
+                                    }
 
+                                    @Override
+                                    public void onDenied(@NonNull List<String> deniedForever, @NonNull List<String> denied) {
+                                        //永久禁止
+                                        AlertDialog.Builder builder = new AlertDialog.Builder(Utils.getApp())
+                                                .setTitle("温馨提示")
+                                                .setMessage("您已拒绝本软件再次请求存储权限，请前往设置页面手动授予本如那件存储权限。")
+                                                .setPositiveButton("前往设置页面", (dialog, which) -> {
+                                                    PermissionUtils.launchAppDetailsSettings();
+                                                })
+                                                .setCancelable(false);
+                                        builder.show();
+                                    }
+                                }).request();
+                        return false;
+                    }
+                    startChooseFileIntent();
                     return true;
                 },
                 //新建文件夹
@@ -210,7 +240,7 @@ public class PersonalnfFragment extends BaseFragment implements IPersoncalnfFrag
                 adapter.exitMulSelect();
 
                 iPersonalnfView.openLoadingDialog("正在打包下载");
-                personalnfModel.downloadBatchFilesAndFolders(mail_cookie, currentFid, "测试", fids, mids, progress -> {
+                personalnfModel.downloadBatchFilesAndFolders(mail_cookie, currentFid, String.valueOf(TimeUtils.getNowMills()), fids, mids, progress -> {
                     LogUtils.i(progress.getCurrentBytes()+"/"+progress.getTotalBytes(),progress.isFinish());
                     ThreadUtils.runOnUiThread(() -> {
                         if(progress.isFinish()){
@@ -245,10 +275,10 @@ public class PersonalnfFragment extends BaseFragment implements IPersoncalnfFrag
                         stringBuilder2.append("文件\""+fileOrFolderItem.getName()+"\"、");
                     }
                 }
-                stringBuilder2.deleteCharAt(stringBuilder.length()-1);
+                stringBuilder2.deleteCharAt(stringBuilder2.length()-1);
                 new AlertDialog.Builder(context)
                         .setTitle("温馨提示")
-                        .setMessage("确定删除"+stringBuilder2.toString())
+                        .setMessage("确定删除"+stringBuilder.toString()+stringBuilder2.toString())
                         .setPositiveButton("确定",(dialog, which) -> {
                             adapter.exitMulSelect();
 
@@ -275,6 +305,50 @@ public class PersonalnfFragment extends BaseFragment implements IPersoncalnfFrag
                 ToastUtils.showShort("你没有选择任何文件或文件夹");
             }
         });
+    }
+    private void startChooseFileIntent(){
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);//意图：文件浏览器
+        intent.setType("*/*");//无类型限制
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);//关键！多选参数
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(intent, CHOISEFILE_REQUESTCODE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            switch (requestCode) {
+                case CHOISEFILE_REQUESTCODE:
+                    assert data != null;
+                    List<String> uploadFileList = new ArrayList<>();
+                    if (data.getData() != null) {
+                        //单次点击未使用多选的情况
+                        try {
+                            Uri uri = data.getData();
+                            File file = UriUtils.uri2File(uri);
+                            uploadFileList.add(file.toString());
+                        } catch (Exception ignored) { }
+                    }else{
+                        //长按使用多选的情况
+                        ClipData clipData = data.getClipData();
+                        if (clipData != null) {
+                            for (int i = 0; i < clipData.getItemCount(); i++) {
+                                ClipData.Item item = clipData.getItemAt(i);
+                                Uri uri = item.getUri();
+                                File file = UriUtils.uri2File(uri);
+                                uploadFileList.add(file.toString());
+                            }
+                        }
+                    }
+                    LogUtils.i(uploadFileList);
+                    personalnfModel.uploadFiles(((FragmentActivity)context).getSupportFragmentManager(),
+                            mail_cookie,currentFid,uploadFileList,
+                            this);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     private void createNewFolder(String newfolder_name) {
@@ -619,21 +693,19 @@ public class PersonalnfFragment extends BaseFragment implements IPersoncalnfFrag
                             openfilepath = (Uri) object;
                             file = UriUtils.uri2File(openfilepath);
                         }
-                        //文件夹打包下载后解决中文乱码
-                        File renamedfile = new File(file.getParent()+File.separator+fileOrFolderItem.getName()+".zip");
-                        if(fileOrFolderItem.isFolder()){
-                            file.renameTo(renamedfile);
-                        }
-                        File finalFile = renamedfile;
+                        File finalFile = file;
                         new AlertDialog.Builder(context)
                                 .setTitle("下载成功")
-                                .setMessage("文件保存至"+finalFile.toString())
+                                .setMessage("文件保存至"+(fileOrFolderItem.isFolder()?(file.getParent()+File.separator+fileOrFolderItem.getName()+".zip"):finalFile.toString()))
                                 .setNeutralButton("确定",null)
                                 .setPositiveButton("立即打开", (dialog, which) -> {
-                                    Uri path = UriUtils.file2Uri(new File(finalFile.toString()));
                                     Intent intent = new Intent(Intent.ACTION_VIEW);
-                                    intent.setDataAndType(path, fileOrFolderItem.getFile_content_type());
-                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                                    intent.setDataAndType(UriUtils.file2Uri(new File(finalFile.toString())), fileOrFolderItem.getFile_content_type());
+                                    intent.addCategory(Intent.CATEGORY_DEFAULT);
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);//授予目录临时共享权限
+                                    //intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                     try {
                                         context.startActivity(intent);
                                     } catch (ActivityNotFoundException e) {
@@ -661,6 +733,12 @@ public class PersonalnfFragment extends BaseFragment implements IPersoncalnfFrag
     public void setMulSelectDisplay(boolean ismulSelect) {
         ll_personalnffragmentr.setVisibility(ismulSelect?View.VISIBLE:View.GONE);
         iPersonalnfView.setSelectMenu(ismulSelect);
+    }
+
+    @Override
+    public void refresh() {
+        iPersonalnfView.openLoadingDialog("正在刷新");
+        loadFloder(currentFid);
     }
 
     /**

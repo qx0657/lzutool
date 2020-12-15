@@ -26,9 +26,11 @@ import fun.qianxiao.lzutool.utils.ClipboardUtils;
  */
 public class UploadAdapter extends RecyclerView.Adapter<UploadAdapter.ViewHolder> {
     private List<UploadItem> uploadFiles;
+    private boolean isInf = false;
 
-    public UploadAdapter(List<UploadItem> uploadFiles) {
+    public UploadAdapter(List<UploadItem> uploadFiles,boolean isInf) {
         this.uploadFiles = uploadFiles;
+        this.isInf = isInf;
     }
 
     @NonNull
@@ -73,11 +75,16 @@ public class UploadAdapter extends RecyclerView.Adapter<UploadAdapter.ViewHolder
         void update(UploadItem uploadItem){
             itemView.setOnClickListener(null);
             if(!TextUtils.isEmpty(uploadItem.getUrlPath())){
-                tv_upload_statu_item_upload.setText("上传成功，点击复制链接");
-                itemView.setOnClickListener(v -> {
-                    ClipboardUtils.Copy2Clipboard(uploadItem.getUrlPath());
-                    ToastUtils.showShort("链接已复制至剪贴板");
-                });
+                if(isInf){
+                    tv_upload_statu_item_upload.setText("上传成功");
+                    itemView.setOnClickListener(null);
+                }else{
+                    tv_upload_statu_item_upload.setText("上传成功，点击复制链接");
+                    itemView.setOnClickListener(v -> {
+                        ClipboardUtils.Copy2Clipboard(uploadItem.getUrlPath());
+                        ToastUtils.showShort("链接已复制至剪贴板");
+                    });
+                }
             }else if(!TextUtils.isEmpty(uploadItem.getError())) {
                 tv_upload_statu_item_upload.setText("上传出错("+uploadItem.getError()+")");
             }else{

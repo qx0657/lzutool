@@ -6,4 +6,5 @@ package fun.qianxiao.lzutool.ui.personalinf.fragment;
  */
 public interface IPersoncalnfFragmentView extends IMenuView {
     void setMulSelectDisplay(boolean ismulSelect);
+    void refresh();
 }

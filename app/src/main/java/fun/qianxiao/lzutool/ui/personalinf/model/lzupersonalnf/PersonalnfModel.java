@@ -1,17 +1,26 @@
 package fun.qianxiao.lzutool.ui.personalinf.model.lzupersonalnf;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.text.TextUtils;
+
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.blankj.utilcode.util.EncodeUtils;
+import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.StringUtils;
+import com.blankj.utilcode.util.ThreadUtils;
 import com.blankj.utilcode.util.TimeUtils;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -24,31 +33,56 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import fr.arnaudguyon.xmltojsonlib.JsonToXml;
+import fr.arnaudguyon.xmltojsonlib.XmlToJson;
 import fun.qianxiao.lzutool.okhttpupdownload.downloadprogress.DownloadProgressListener;
 import fun.qianxiao.lzutool.okhttpupdownload.downloadprogress.ResponseProgressBody;
+import fun.qianxiao.lzutool.okhttpupdownload.uploadprogress.RequestProgressBody;
+import fun.qianxiao.lzutool.ui.main.model.lzuoafileupload.FileUploadModel;
+import fun.qianxiao.lzutool.ui.main.model.lzuoafileupload.view.UploadFragmentDialog;
 import fun.qianxiao.lzutool.ui.personalinf.bean.FileOrFolderItem;
+import fun.qianxiao.lzutool.ui.personalinf.fragment.IPersoncalnfFragmentView;
+import fun.qianxiao.lzutool.utils.HttpConnectionUtil;
 import fun.qianxiao.lzutool.utils.MyCookieUtils;
 import fun.qianxiao.lzutool.utils.MyOkhttpUtils;
 import fun.qianxiao.lzutool.utils.MyVolleyManager;
+import fun.qianxiao.lzutool.utils.Xml2JsonUtils;
 import fun.qianxiao.lzutool.utils.android10downloadfile.FileSDCardUtil;
 import fun.qianxiao.lzutool.utils.android10downloadfile.HttpDownFileUtils;
 import fun.qianxiao.lzutool.utils.android10downloadfile.MyFileUtils;
 import fun.qianxiao.lzutool.utils.android10downloadfile.OnFileDownListener;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.Interceptor;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okio.BufferedSink;
 
 import static android.os.Environment.DIRECTORY_DOWNLOADS;
 
@@ -527,5 +561,250 @@ public class PersonalnfModel {
                 .header("Cookie",mail_cookie)
                 .post(requestBody)
                 .build()).enqueue(callback);
+    }
+
+    long offset = 0;
+    /**
+     * 上传文件
+     */
+    @SuppressLint("CheckResult")
+    public void uploadFiles(FragmentManager manager, String mail_cookie, int fid, List<String> filepaths, IPersoncalnfFragmentView iPersoncalnfFragmentView){
+        int filenum = filepaths.size();
+        Map<String,String> map = MyCookieUtils.cookieStr2map(mail_cookie);
+        String sid = map.get("Coremail.sid");
+        UploadFragmentDialog uploadFragmentDialog = new UploadFragmentDialog(filepaths,true);
+        uploadFragmentDialog.show(manager,"UploadFragmentDialog");
+        final int[] currentFile = {0};
+
+        Observable.fromArray(filepaths.toArray()).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(o -> {
+                    currentFile[0]++;
+                    String filepath = (String) o;
+                    long filesize = FileUtils.getFileLength(filepath);
+                    LogUtils.i(filesize);
+                    if(filesize>=104857600){
+                        uploadFragmentDialog.onError(currentFile[0],"上传文件大小不能超过100M");
+                        return;
+                    }
+                    File file = new File(filepath);
+                    String fileName = file.getName();
+                    OkHttpClient okHttpClient = MyOkhttpUtils.getUnsafeOkHttpClientBuilder()
+                            .build();
+                    Observable.create((ObservableOnSubscribe<String>) emitter -> {
+                        //上传准备
+                        String res = okHttpClient.newCall(new okhttp3.Request.Builder()
+                                .addHeader("Cookie",mail_cookie)
+                                .addHeader("Content-type","application/xml")
+                                .url("https://mail.lzu.edu.cn/coremail/s?func=upload:prepare&sid="+sid)
+                                .post(new RequestBody() {
+                                    @Nullable
+                                    @Override
+                                    public MediaType contentType() {
+                                        return MediaType.parse("application/xml");
+                                    }
+
+                                    @Override
+                                    public void writeTo(@NotNull BufferedSink bufferedSink) throws IOException {
+                                        String req = "<object>\n" +
+                                                "  <string name=\"sid\">"+sid+"</string>\n" +
+                                                "  <boolean name=\"inlined\">false</boolean>\n" +
+                                                "  <int name=\"size\">"+filesize+"</int>\n" +
+                                                "  <string name=\"fileName\">"+fileName+"</string>\n" +
+                                                "  <int name=\"attachId\">-1</int>\n" +
+                                                "  <string name=\"composeId\">c:nf:"+fid+"</string>\n" +
+                                                "</object>";
+                                        bufferedSink.write(req.getBytes());
+                                    }
+                                })
+                                .build())
+                                .execute().body().string();
+                        //LogUtils.i(res);
+                        JSONObject jsonObject = Xml2JsonUtils.xml2json(res);
+                        if(jsonObject.getJSONObject("result").getString("code").equals("S_OK")){
+                            emitter.onNext("PrepareSuccess");
+                        }else{
+                            emitter.onError(new Throwable("上传准备错误"));
+                        }
+                    }).subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<String>() {
+                                @Override
+                                public void onSubscribe(@NonNull Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(@NonNull String s) {
+                                    //准备好后上传
+                                    Observable.create((ObservableOnSubscribe<String>) emitter -> {
+                                        if(filesize>2097152){//大于2M 分块上传
+                                            offset = 0;
+                                            /*RandomAccessFile randomAccessFile = new RandomAccessFile(file,"r");
+                                            byte [] filebytes = new byte [( int )randomAccessFile.length()];
+                                            randomAccessFile.readFully(filebytes);*/
+                                            while (true){
+                                                RequestBody fileBody = RequestBody.create(fun.qianxiao.lzutool.utils.MyFileUtils.getBlock(offset,file,2097152),MediaType.parse("application/octet-stream"));
+                                                okhttp3.Request request = new okhttp3.Request.Builder()
+                                                        .addHeader("Cookie",mail_cookie)
+                                                        .addHeader("Content-Type","application/octet-stream")
+                                                        .url("https://mail.lzu.edu.cn/coremail/s?func=upload:directData&sid="+sid+"&attachmentId=1&composeId=c:nf:"+fid+"&offset="+offset)
+                                                        .post(new RequestProgressBody(fileBody, progress -> {
+                                                            int percent = (int) ((offset+progress.getCurrentBytes())*100/filesize);
+                                                            int allpercent = (currentFile[0]-1)*100/filenum + (int) (progress.getCurrentBytes()*100/progress.getTotalBytes()/filenum);
+                                                            ThreadUtils.runOnUiThread(() -> uploadFragmentDialog.onProgress(currentFile[0],percent,allpercent));
+                                                        }))
+                                                        .build();
+                                                Call call = okHttpClient.newCall(request);
+                                                Response response2 = call.execute();//同步请求
+                                                String rsp = Objects.requireNonNull(response2.body()).string();
+                                                LogUtils.i(rsp);
+                                                JSONObject jsonObject = Xml2JsonUtils.xml2json(rsp);
+                                                if(jsonObject.getJSONObject("result").getString("code").equals("S_OK")){
+                                                    //LogUtils.i(jsonObject.toString());
+                                                    JSONArray jsonArray = jsonObject.getJSONObject("result").getJSONObject("object").getJSONArray("int");
+                                                    long actualSize = 0;
+                                                    for (int i = 0; i < jsonArray.length(); i++) {
+                                                        if(jsonArray.optJSONObject(i).getString("name").equals("actualSize")){
+                                                            actualSize = Long.parseLong(jsonArray.optJSONObject(i).getString("content"));
+                                                            break;
+                                                        }
+                                                    }
+                                                    if(actualSize == filesize){
+                                                        emitter.onNext("UploadSuccess");
+                                                        break;
+                                                    }else{
+                                                        offset = actualSize;
+                                                    }
+                                                }else{
+                                                    emitter.onError(new Throwable("分块上传错误"));
+                                                    break;
+                                                }
+                                            }
+
+                                        }else{
+                                            RequestBody fileBody = RequestBody.create(file,MediaType.parse("application/octet-stream"));
+                                            okhttp3.Request request = new okhttp3.Request.Builder()
+                                                    .addHeader("Cookie",mail_cookie)
+                                                    .addHeader("Content-Type","application/octet-stream")
+                                                    .url("https://mail.lzu.edu.cn/coremail/s?func=upload:directData&sid="+sid+"&attachmentId=1&composeId=c:nf:"+fid+"&offset=0")
+                                                    .post(new RequestProgressBody(fileBody, progress -> {
+                                                        int percent = (int) (progress.getCurrentBytes()*100/progress.getTotalBytes());
+                                                        int allpercent = (currentFile[0]-1)*100/filenum + (int) (progress.getCurrentBytes()*100/progress.getTotalBytes()/filenum);
+                                                        ThreadUtils.runOnUiThread(() -> uploadFragmentDialog.onProgress(currentFile[0],percent,allpercent));
+                                                    }))
+                                                    .build();
+                                            Call call = okHttpClient.newCall(request);
+                                            Response response2 = call.execute();//同步请求
+                                            String rsp = Objects.requireNonNull(response2.body()).string();
+                                            LogUtils.i(rsp);
+                                            JSONObject jsonObject = Xml2JsonUtils.xml2json(rsp);
+                                            if(jsonObject.getJSONObject("result").getString("code").equals("S_OK")){
+                                                emitter.onNext("UploadSuccess");
+                                            }else{
+                                                emitter.onError(new Throwable("上传错误001"));
+                                            }
+                                        }
+                                    }).subscribeOn(Schedulers.io())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .subscribe(new Observer<String>() {
+                                                @Override
+                                                public void onSubscribe(@NonNull Disposable d) {
+
+                                                }
+
+                                                @Override
+                                                public void onNext(@NonNull String s) {
+                                                    //上传完成后最后一步 moveToNetFolder
+                                                    Observable.create((ObservableOnSubscribe<String>) emitter -> {
+                                                        String res = okHttpClient.newCall(new okhttp3.Request.Builder()
+                                                                .addHeader("Cookie",mail_cookie)
+                                                                .addHeader("Content-type","application/xml")
+                                                                .url("https://mail.lzu.edu.cn/coremail/s?func=upload:moveToNetFolder&sid="+sid)
+                                                                .post(new RequestBody() {
+                                                                    @Nullable
+                                                                    @Override
+                                                                    public MediaType contentType() {
+                                                                        return MediaType.parse("application/xml");
+                                                                    }
+
+                                                                    @Override
+                                                                    public void writeTo(@NotNull BufferedSink bufferedSink) throws IOException {
+                                                                        String req = "<object>\n" +
+                                                                                "  <string name=\"sid\">"+sid+"</string>\n" +
+                                                                                "  <string name=\"composeId\">c:nf:"+fid+"</string>\n" +
+                                                                                "  <string name=\"item\">"+fileName+"</string>\n" +
+                                                                                "  <int name=\"attachmentId\">1</int>\n" +
+                                                                                "</object>";
+                                                                        bufferedSink.write(req.getBytes());
+                                                                    }
+                                                                })
+                                                                .build())
+                                                                .execute().body().string();
+                                                        //LogUtils.i(res);
+                                                        JSONObject jsonObject = Xml2JsonUtils.xml2json(res);
+                                                        if(jsonObject.getJSONObject("result").getString("code").equals("S_OK")){
+                                                            emitter.onNext("MoveToNetFolderSuccess");
+                                                        }else{
+                                                            emitter.onError(new Throwable("MoveToNetFolder Error"));
+                                                        }
+                                                    }).subscribeOn(Schedulers.io())
+                                                            .observeOn(AndroidSchedulers.mainThread())
+                                                            .subscribe(new Observer<String>() {
+                                                                @Override
+                                                                public void onSubscribe(@NonNull Disposable d) {
+
+                                                                }
+
+                                                                @Override
+                                                                public void onNext(@NonNull String s) {
+                                                                    //上传成功
+                                                                    uploadFragmentDialog.onFinish(currentFile[0],s);
+                                                                    if(currentFile[0]==filenum){
+                                                                        uploadFragmentDialog.dismiss();
+                                                                        iPersoncalnfFragmentView.refresh();
+                                                                    }
+                                                                }
+
+                                                                @Override
+                                                                public void onError(@NonNull Throwable e) {
+                                                                    uploadFragmentDialog.onError(currentFile[0],e.getMessage());
+                                                                }
+
+                                                                @Override
+                                                                public void onComplete() {
+
+                                                                }
+                                                            });
+                                                }
+
+                                                @Override
+                                                public void onError(@NonNull Throwable e) {
+                                                    e.printStackTrace();
+                                                    LogUtils.e(781,e.toString());
+                                                    uploadFragmentDialog.onError(currentFile[0],e.getMessage());
+                                                }
+
+                                                @Override
+                                                public void onComplete() {
+
+                                                }
+                                            });
+                                }
+
+                                @Override
+                                public void onError(@NonNull Throwable e) {
+                                    LogUtils.e(794,e.toString());
+                                    uploadFragmentDialog.onError(currentFile[0],e.getMessage());
+                                }
+
+                                @Override
+                                public void onComplete() {
+
+                                }
+                            });
+
+                });
+
     }
 }

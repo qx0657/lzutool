@@ -37,6 +37,8 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.blankj.utilcode.util.UriUtils;
 import com.blankj.utilcode.util.Utils;
 
+import org.json.JSONObject;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +53,8 @@ import fun.qianxiao.lzutool.bean.SchoolNetInfo;
 import fun.qianxiao.lzutool.bean.User;
 import fun.qianxiao.lzutool.ui.main.model.baseinfo.GetBaseInfoModel;
 import fun.qianxiao.lzutool.ui.main.model.cardreportlossorcanclereportloss.CardReportLossModel;
+import fun.qianxiao.lzutool.ui.main.model.ecardservices.EcardServicesModel;
+import fun.qianxiao.lzutool.ui.main.model.ecardservices.TransferYueModel;
 import fun.qianxiao.lzutool.ui.main.model.healthpunch.HealthPunchModel;
 import fun.qianxiao.lzutool.ui.main.model.healthpunchcloudtrusteeship.CloudTrusteeshipModel;
 import fun.qianxiao.lzutool.ui.main.model.lzuoafileupload.view.UploadFragmentDialog;
@@ -68,6 +72,8 @@ import fun.qianxiao.lzutool.utils.ClipboardUtils;
 import fun.qianxiao.lzutool.utils.MyCookieUtils;
 import fun.qianxiao.lzutool.utils.MySpUtils;
 import fun.qianxiao.lzutool.view.MyLoadingDialog;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 
 /**
  * Create by QianXiao
@@ -750,10 +756,12 @@ public class MainViewModel extends BaseObservable implements IClickView {
                     public void onLoginEcardGetSidSuccess(Map<String,String> ecardcookie) {
                         LogUtils.i(ecardcookie);
                         ecardcookie.put("iPlanetDirectoryPro",tgt);
+
                         getBaseInfoModel.getCardAccNum(ecardcookie, new GetBaseInfoModel.GetCardAccNumCallBack() {
                             @Override
                             public void onGetCardAccNumSuccess(String cardAccNum) {
                                 LogUtils.i(cardAccNum);
+
                                 new CardReportLossModel().report(
                                         MyCookieUtils.map2cookieStr(ecardcookie),
                                         cardAccNum,
@@ -774,6 +782,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                                             }
                                         }
                                 );
+
                             }
 
                             @Override
@@ -783,6 +792,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                                 closeLoadingDialog();
                             }
                         });
+
                     }
 
                     @Override
@@ -895,7 +905,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
     }
 
     private void filesUpload(List<String> uploadFileList){
-        UploadFragmentDialog uploadFragmentDialog = new UploadFragmentDialog(uploadFileList);
+        UploadFragmentDialog uploadFragmentDialog = new UploadFragmentDialog(uploadFileList,false);
         uploadFragmentDialog.show(((FragmentActivity)context).getSupportFragmentManager(),"UploadFragmentDialog");
         String login_uid = MySpUtils.getString("login_uid");
         String login_pwd = MySpUtils.getString("login_pwd");

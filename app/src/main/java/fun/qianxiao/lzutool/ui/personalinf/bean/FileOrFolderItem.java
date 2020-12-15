@@ -1,6 +1,12 @@
 package fun.qianxiao.lzutool.ui.personalinf.bean;
 
+import android.text.TextUtils;
+
+import com.blankj.utilcode.util.FileUtils;
+
 import java.util.Date;
+
+import fun.qianxiao.lzutool.utils.MIMEUtils;
 
 /**
  * Create by QianXiao
@@ -60,7 +66,11 @@ public class FileOrFolderItem {
     }
 
     public String getFile_content_type() {
-        return file_content_type;
+        if(TextUtils.isEmpty(file_content_type)){
+            return MIMEUtils.getMIMEType(getName());
+        }else{
+            return file_content_type;
+        }
     }
 
     public void setFile_content_type(String file_content_type) {
