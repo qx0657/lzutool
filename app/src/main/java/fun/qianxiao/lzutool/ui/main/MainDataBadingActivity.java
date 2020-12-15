@@ -199,7 +199,7 @@ public class MainDataBadingActivity
             binding.navView.getMenu().performIdentifierAction(R.id.drawer_menu_themecolor,0);
         }
         //默认合上校园卡卡片
-        //openOrCloseSchoolNetArea(null);
+        openOrCloseSchoolNetArea(null);
         new CheckUpdateManager(context).check(true);
     }
 

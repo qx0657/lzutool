@@ -54,6 +54,7 @@ import fun.qianxiao.lzutool.bean.User;
 import fun.qianxiao.lzutool.ui.main.model.baseinfo.GetBaseInfoModel;
 import fun.qianxiao.lzutool.ui.main.model.cardreportlossorcanclereportloss.CardReportLossModel;
 import fun.qianxiao.lzutool.ui.main.model.ecardservices.EcardServicesModel;
+import fun.qianxiao.lzutool.ui.main.model.ecardservices.TransferYueDialogFragment;
 import fun.qianxiao.lzutool.ui.main.model.ecardservices.TransferYueModel;
 import fun.qianxiao.lzutool.ui.main.model.healthpunch.HealthPunchModel;
 import fun.qianxiao.lzutool.ui.main.model.healthpunchcloudtrusteeship.CloudTrusteeshipModel;
@@ -164,6 +165,10 @@ public class MainViewModel extends BaseObservable implements IClickView {
     }
 
     public void Refresh(boolean flag){
+        Refresh(flag,false);
+    }
+
+    public void Refresh(boolean flag,boolean onlyRefreshWallet){
         if(user == null){
             lzuloginModel.showLoginDialog();
             return;
@@ -185,6 +190,8 @@ public class MainViewModel extends BaseObservable implements IClickView {
         getBaseInfoModel.getWalletMoney(user.getAccnum(), new GetBaseInfoModel.GetWalletMoneyModelCallBack() {
             @Override
             public void onGetWalletMoneySuccess(String yu_e,String dzzh_yu_e) {
+                LogUtils.i("yu_e:"+yu_e,
+                        "dzzh_yu_e:"+dzzh_yu_e);
                 if(flag){
                     closeLoadingDialog();
                 }
@@ -207,6 +214,9 @@ public class MainViewModel extends BaseObservable implements IClickView {
                 notifyPropertyChanged(BR.user);
             }
         });
+        if(onlyRefreshWallet){
+            return;
+        }
         String login_uid = MySpUtils.getString("login_uid");
         String login_pwd = MySpUtils.getString("login_pwd");
         boolean isYjs = user.getCardid().startsWith("2");
@@ -310,11 +320,15 @@ public class MainViewModel extends BaseObservable implements IClickView {
         LogUtils.i("获取宿舍电费:"+dormno);
         getBaseInfoModel.getDormBlance(dormno, new GetBaseInfoModel.GetDormBlanceCallBack() {
             @Override
-            public void onGetDormBlanceSuccess(String blance) {
+            public void onGetDormBlanceSuccess(String blance,String areano,String buildingno,String floorno,String roomid) {
                 LogUtils.i(blance);
                 //if(flag){
                 closeLoadingDialog();
                 //}
+                user.getDormInfo().setAreano(areano);
+                user.getDormInfo().setBuildingno(buildingno);
+                user.getDormInfo().setFloorno(floorno);
+                user.getDormInfo().setRoomno(roomid);
                 user.getDormInfo().setBlance(blance);
                 //更新UI 电费
                 notifyPropertyChanged(BR.user);
@@ -894,6 +908,51 @@ public class MainViewModel extends BaseObservable implements IClickView {
         intent.putExtra("login_pwd",login_pwd);
         context.startActivity(intent);
 
+    }
+
+    @Override
+    public void transferYue() {
+        if(user == null){
+            ToastUtils.showShort("请登录后使用");
+            lzuloginModel.showLoginDialog();
+            return;
+        }
+        new TransferYueDialogFragment(user.getCardid(), (dialog, fromCardid, isFromEWallet, toCardid, isToEWallet, money, paypwd) -> {
+            openLoadingDialog("转移余额");
+            new TransferYueModel().transferYueToOtherCard(fromCardid, isFromEWallet,
+                    toCardid, isToEWallet,
+                    paypwd, money, new Observer<Boolean>() {
+                        @Override
+                        public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                        }
+
+                        @Override
+                        public void onNext(@io.reactivex.annotations.NonNull Boolean aBoolean) {
+                            closeLoadingDialog();
+                            ToastUtils.showShort("转移成功");
+                            dialog.dismiss();
+                            Refresh(true,true);
+                        }
+
+                        @Override
+                        public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                            closeLoadingDialog();
+                            LogUtils.e(e.getMessage());
+                            ToastUtils.showShort(e.getMessage());
+                        }
+
+                        @Override
+                        public void onComplete() {
+
+                        }
+                    });
+        }).show(((FragmentActivity)context).getSupportFragmentManager(),"TransferYueDialogFragment");
+    }
+
+    @Override
+    public void payForElectricity() {
+        ToastUtils.showShort("等待开发");
     }
 
     private void startChooseFileIntent(){

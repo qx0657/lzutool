@@ -55,5 +55,15 @@ public interface IClickView extends ILoadingView {
      */
     void lzuPersonalnf();
 
+    /**
+     * 余额互转
+     */
+    void transferYue();
+
+    /**
+     * 交电费
+     */
+    void payForElectricity();
+
     void setDormInfo();
 }

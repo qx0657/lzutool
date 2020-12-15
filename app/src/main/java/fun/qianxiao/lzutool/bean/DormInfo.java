@@ -23,6 +23,11 @@ public class DormInfo extends BaseObservable implements Serializable {
      */
     private String blance;
 
+    private String areano;
+    private String buildingno;
+    private String floorno;
+    private String roomno;
+
     public String getDormno() {
         return dormno;
     }
@@ -47,6 +52,38 @@ public class DormInfo extends BaseObservable implements Serializable {
 
     public void setBlance(String blance) {
         this.blance = blance;
+    }
+
+    public String getAreano() {
+        return areano;
+    }
+
+    public void setAreano(String areano) {
+        this.areano = areano;
+    }
+
+    public String getBuildingno() {
+        return buildingno;
+    }
+
+    public void setBuildingno(String buildingno) {
+        this.buildingno = buildingno;
+    }
+
+    public String getFloorno() {
+        return floorno;
+    }
+
+    public void setFloorno(String floorno) {
+        this.floorno = floorno;
+    }
+
+    public String getRoomno() {
+        return roomno;
+    }
+
+    public void setRoomno(String roomno) {
+        this.roomno = roomno;
     }
 
     @Override

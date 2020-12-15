@@ -475,6 +475,42 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
                         </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:padding="3dp"
+                            android:orientation="vertical"
+                            android:onClick="@{v -> mainViewModelAppBar.transferYue()}">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_bus_outline"/>
+                            <TextView
+                                android:layout_marginTop="8dp"
+                                android:text="余额互转"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:padding="3dp"
+                            android:orientation="vertical"
+                            android:onClick="@{v -> mainViewModelAppBar.payForElectricity()}">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_bus_outline"/>
+                            <TextView
+                                android:layout_marginTop="8dp"
+                                android:text="快交电费"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
                     </LinearLayout>
                     <LinearLayout
                         android:layout_width="match_parent"

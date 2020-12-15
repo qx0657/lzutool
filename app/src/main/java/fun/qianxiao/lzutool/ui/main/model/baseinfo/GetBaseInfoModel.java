@@ -65,7 +65,7 @@ public class GetBaseInfoModel {
                 Request.Method.POST,
                 "https://appservice.lzu.edu.cn/easytong_app/easytong-app/easytong_app/GetWalletMoney",
                 response -> {
-                    LogUtils.i(response);
+                    //LogUtils.i(response);
                     JSONObject jsonObject = Xml2JsonUtils.xml2json(response).optJSONObject("EasyTong");
                     //LogUtils.i(jsonObject);
                     assert jsonObject != null;
@@ -148,7 +148,7 @@ public class GetBaseInfoModel {
     }
 
     public interface GetDormBlanceCallBack{
-        void onGetDormBlanceSuccess(String blance);
+        void onGetDormBlanceSuccess(String blance,String areano,String buildingno,String floorno,String roomid);
         void onGetDormBlanceError(String error);
     }
 
@@ -167,14 +167,19 @@ public class GetBaseInfoModel {
                     try {
                         JSONObject jsonObject = new JSONObject(response);
                         if(jsonObject.optInt("code")==1){
-                            String blance = Objects.requireNonNull(jsonObject.optJSONObject("data")).optString("balance");
+                            JSONObject dataJSONObject = jsonObject.optJSONObject("data");
+                            String areano = dataJSONObject.optString("areano");
+                            String buildingno = dataJSONObject.optString("buildingno");
+                            String floorno = dataJSONObject.optString("floorno");
+                            String roomid = dataJSONObject.optString("roomid");
+                            String blance = Objects.requireNonNull(dataJSONObject).optString("balance");
                             if(!TextUtils.isEmpty(blance)){
                                 /*DormInfo dormInfo = new DormInfo();
                                 dormInfo.setDormno(dormno);
                                 dormInfo.setBlance(blance+"度");
                                 dormInfo.setDorm(Objects.requireNonNull(jsonObject.optJSONObject("data")).optString("dormname"));
                                 */
-                                callBack.onGetDormBlanceSuccess(blance+"度");
+                                callBack.onGetDormBlanceSuccess(blance+"度",areano,buildingno,floorno,roomid);
                             }else{
                                 callBack.onGetDormBlanceError("宿舍电费获取失败");
                             }
