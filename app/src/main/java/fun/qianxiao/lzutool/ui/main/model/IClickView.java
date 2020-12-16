@@ -65,5 +65,10 @@ public interface IClickView extends ILoadingView {
      */
     void payForElectricity();
 
+    /**
+     * 修改密码
+     */
+    void reSetPwd();
+
     void setDormInfo();
 }

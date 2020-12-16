@@ -147,18 +147,18 @@ public class GetBaseInfoModel {
         MyVolleyManager.getRequestQueue().add(getDormInfoJsonObjectRequest);
     }
 
-    public interface GetDormBlanceCallBack{
-        void onGetDormBlanceSuccess(String blance,String areano,String buildingno,String floorno,String roomid);
-        void onGetDormBlanceError(String error);
+    public interface GetDormDetailInfoCallBack{
+        void onGetDormDetailInfoSuccess(String areano,String buildingno,String floorno,String roomid);
+        void onGetDormDetailInfoError(String error);
     }
 
     /**
-     * 获取宿舍电费
+     * 获取宿舍交电费的信息
      * （无需登录，调用自写php接口）
      * @param dormno 宿舍自编号
      * @param callBack
      */
-    public void getDormBlance(String dormno,GetDormBlanceCallBack callBack){
+    public void getDormDetailInfo(String dormno,GetDormDetailInfoCallBack callBack){
         StringRequest getDormBlanceRequest = new StringRequest(
                 Request.Method.POST,
                 "http://api.qianxiao.fun/lzudormblance/get.php",
@@ -172,25 +172,16 @@ public class GetBaseInfoModel {
                             String buildingno = dataJSONObject.optString("buildingno");
                             String floorno = dataJSONObject.optString("floorno");
                             String roomid = dataJSONObject.optString("roomid");
-                            String blance = Objects.requireNonNull(dataJSONObject).optString("balance");
-                            if(!TextUtils.isEmpty(blance)){
-                                /*DormInfo dormInfo = new DormInfo();
-                                dormInfo.setDormno(dormno);
-                                dormInfo.setBlance(blance+"度");
-                                dormInfo.setDorm(Objects.requireNonNull(jsonObject.optJSONObject("data")).optString("dormname"));
-                                */
-                                callBack.onGetDormBlanceSuccess(blance+"度",areano,buildingno,floorno,roomid);
-                            }else{
-                                callBack.onGetDormBlanceError("宿舍电费获取失败");
-                            }
+                            //String blance = Objects.requireNonNull(dataJSONObject).optString("balance");
+                            callBack.onGetDormDetailInfoSuccess(areano,buildingno,floorno,roomid);
                         }else{
-                            callBack.onGetDormBlanceError(jsonObject.optString("msg")+"("+jsonObject.optInt("code")+")");
+                            callBack.onGetDormDetailInfoError(jsonObject.optString("msg")+"("+jsonObject.optInt("code")+")");
                         }
                     } catch (JSONException e) {
                         LogUtils.e(e.toString());
-                        callBack.onGetDormBlanceError(e.getMessage());
+                        callBack.onGetDormDetailInfoError(e.getMessage());
                     }
-                }, error -> callBack.onGetDormBlanceError(error.toString())){
+                }, error -> callBack.onGetDormDetailInfoError(error.toString())){
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> map = new HashMap<>();

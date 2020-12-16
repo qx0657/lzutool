@@ -35,12 +35,21 @@ import java.util.regex.Pattern;
 import fun.qianxiao.lzutool.bean.User;
 import fun.qianxiao.lzutool.utils.HttpConnectionUtil;
 import fun.qianxiao.lzutool.utils.MyCookieUtils;
+import fun.qianxiao.lzutool.utils.MyOkhttpUtils;
 import fun.qianxiao.lzutool.utils.MySpUtils;
 import fun.qianxiao.lzutool.utils.MyVolleyManager;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Cookie;
 import okhttp3.CookieJar;
+import okhttp3.FormBody;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 
@@ -285,7 +294,9 @@ public class LzuloginModel {
                 "https://ecard.lzu.edu.cn/lzulogin",
                 "iPlanetDirectoryPro="+tgt);
         if(!TextUtils.isEmpty(cookies)){
-            callBack.onLoginEcardGetSidSuccess(MyCookieUtils.cookieStr2map(cookies));
+            Map<String,String> ecardcookie = MyCookieUtils.cookieStr2map(cookies);
+            ecardcookie.put("iPlanetDirectoryPro",tgt);
+            callBack.onLoginEcardGetSidSuccess(ecardcookie);
         }else{
             callBack.onLoginEcardGetSidError("智慧一卡通登录失败");
         }
@@ -312,26 +323,53 @@ public class LzuloginModel {
         }
     }
 
-    /*public interface LoginMyLzuCallBack{
-        void onLoginMyLzuSuccess(String cookie_mylzu);
-        void onLoginMyLzuError(String error);
-    }
-
-    *//**
+    /**
      * 登录个人工作台
      * @param tgt
      * @param st
-     * @param callBack
-     *//*
-    public void loginMyLzu(String tgt,String st,LoginMyLzuCallBack callBack){
-        //String cookie = HttpConnectionUtil.getHttp().request302getResponseCookie("http://my.lzu.edu.cn:8080/login?service=http://my.lzu.edu.cn","");
-        Map<String,String> map = new HashMap<>();
-        map.put("CASTGC",tgt);
-        map.put("iPlanetDirectoryPro",tgt);
-        map.put("SSO_PORTAL_SESSION_KEY","hugb16");
-        String cookie = HttpConnectionUtil.getHttp().request302getResponseCookie("http://my.lzu.edu.cn/?ticket="+st,MyCookieUtils.map2cookieStr(map));
-        LogUtils.i(cookie);
-    }*/
+     * @param observer
+     */
+    public void loginMyLzu(String tgt, String st, Observer<String> observer){
+        Observable.create(new ObservableOnSubscribe<String>() {
+            @Override
+            public void subscribe(@NonNull ObservableEmitter<String> emitter) throws Exception {
+                Map<String,String> map = new HashMap<>();
+                map.put("CASTGC",tgt);
+                map.put("iPlanetDirectoryPro",tgt);
+                new OkHttpClient.Builder()
+                        .followRedirects(false)
+                        .cookieJar(new CookieJar() {
+                            @Override
+                            public void saveFromResponse(@NotNull HttpUrl httpUrl, @NotNull List<Cookie> list) {
+                                StringBuilder stringBuilder = new StringBuilder();
+                                for (Cookie cookie : list) {
+                                    stringBuilder.append(cookie.name());
+                                    stringBuilder.append("=");
+                                    stringBuilder.append(cookie.value());
+                                    stringBuilder.append(";");
+                                }
+                                emitter.onNext(stringBuilder.toString());
+                            }
+
+                            @NotNull
+                            @Override
+                            public List<Cookie> loadForRequest(@NotNull HttpUrl httpUrl) {
+                                return new ArrayList<>();
+                            }
+                        })
+                        .build().
+                        newCall(new okhttp3.Request.Builder()
+                            .addHeader("Cookie",MyCookieUtils.map2cookieStr(map))
+                            .url("http://my.lzu.edu.cn/?ticket="+st)
+                            .get()
+                            .build())
+                        .execute().body().string();
+
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(observer);
+    }
 
     public interface LoginLzuMailCallBack{
         void onLoginLzuMailSuccess(String coolie_mail);

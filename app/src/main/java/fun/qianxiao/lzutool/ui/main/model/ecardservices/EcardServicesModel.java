@@ -4,10 +4,13 @@ import android.text.TextUtils;
 
 import com.blankj.utilcode.util.LogUtils;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import java.io.IOException;
 import java.security.interfaces.RSAPublicKey;
 
 import fun.qianxiao.lzutool.utils.MyOkhttpUtils;
@@ -21,9 +24,11 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.FormBody;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okio.BufferedSink;
 
 public class EcardServicesModel {
     private OkHttpClient okHttpClient = MyOkhttpUtils.getUnsafeOkHttpClientBuilder()
@@ -33,7 +38,7 @@ public class EcardServicesModel {
      * @param zhyktcookie
      * @param observer
      */
-    private void getRSAPublicKey(String zhyktcookie,Observer<RSAPublicKey> observer){
+    public void getRSAPublicKey(String zhyktcookie,Observer<RSAPublicKey> observer){
         Observable.create((ObservableOnSubscribe<RSAPublicKey>) emitter -> {
             String res = okHttpClient.newCall(new Request.Builder()
                     .addHeader("Cookie",zhyktcookie)
@@ -135,12 +140,14 @@ public class EcardServicesModel {
     /**
      * 使用电子账户缴费宿舍电费
      * @param zhyktcookie
+     * @param isUseYue 是否使用校园卡余额
+     * @param cardAccNUm 使用使用校园卡余额则需要校园卡CardAccNum
      * @param pwd 校园卡支付密码
      * @param paymoney 缴费金额
-     * @param dorminfo 宿舍基础信息json 包含了areano buildingno floorno roomno
+     * @param dorminfo 宿舍基础信息json 包含了 areano buildingno floorno roomno
      * @param observer
      */
-    public void useEcardPayForElectricity(String zhyktcookie, String pwd, String paymoney, JSONObject dorminfo, Observer<Boolean> observer){
+    public void useEcardPayForElectricity(String zhyktcookie, boolean isUseYue, String cardAccNUm, String pwd, String paymoney, JSONObject dorminfo, Observer<Boolean> observer){
         getElectricityPayToken(zhyktcookie, new Observer<String>() {
             @Override
             public void onSubscribe(@NonNull Disposable d) {
@@ -165,18 +172,18 @@ public class EcardServicesModel {
                                     .post(new FormBody.Builder()
                                             .add("pwd",MyRSACrypt.encrypt(rsaPublicKey, pwd))
                                             .add("itemNum","2")
-                                            .add("eWalletId","9")
+                                            .add("eWalletId",isUseYue?"1":"9")
                                             .add("typeNum","3")
                                             .add("itemName","学生宿舍电费")
                                             .add("payMenoy",paymoney)
                                             .add("ewalletMenoy","0.00")//已测试不可为空 可为0.00
-                                            .add("eWalletName","电子账户")
+                                            .add("eWalletName",isUseYue?"校园卡":"电子账户")
                                             .add("areano",dorminfo.optString("areano"))
                                             .add("buildingno",dorminfo.optString("buildingno"))
                                             .add("floorno",dorminfo.optString("floorno"))
                                             .add("roomno",dorminfo.optString("roomno"))
                                             .add("buildingname","公寓")//已测试 不用填写具体真实楼名
-                                            .add("cardaccNum","0")
+                                            .add("cardaccNum",isUseYue?cardAccNUm:"0")
                                             .add("token",token)
                                             .build())
                                     .build())
@@ -217,5 +224,37 @@ public class EcardServicesModel {
 
             }
         });
+    }
+
+    /**
+     * 电费查询
+     * @param zhyktcookie
+     * @param areano
+     * @param buildingno
+     * @param floorno
+     * @param roomno
+     * @param observer
+     */
+    public void queryDormBlance(String zhyktcookie,String areano, String buildingno, String floorno, String roomno, Observer<String> observer){
+        Observable.create((ObservableOnSubscribe<String>) emitter -> {
+            String res = okHttpClient.newCall(new Request.Builder()
+                    .addHeader("Cookie",zhyktcookie)
+                    .url("https://ecard.lzu.edu.cn/payFee/getBalance?t="+System.currentTimeMillis())
+                    .post(new FormBody.Builder()
+                            .add("data","{\"itemNum\":\"2\",\"areano\":\""+areano+"\",\"buildingno\":\""+buildingno+"\",\"floorno\":\""+floorno+"\",\"roomno\":\""+roomno+"\"}")
+                            .build())
+                    .build())
+                    .execute().body().string();
+            LogUtils.i(res);
+            JSONObject jsonObject = new JSONObject(res);
+            if (jsonObject.getString("ajaxState").equals("3")&&jsonObject.getJSONObject("feeDate").has("balance")){
+                String blance = jsonObject.getJSONObject("feeDate").getString("balance");
+                emitter.onNext(blance);
+            }else{
+                emitter.onError(new Throwable("电费查询失败"));
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(observer);
     }
 }

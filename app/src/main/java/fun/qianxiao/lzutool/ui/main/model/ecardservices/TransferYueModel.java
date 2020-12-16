@@ -90,7 +90,7 @@ public class TransferYueModel {
      * @return
      * @throws Throwable
      */
-    private String getAccNum(String cardid) throws Exception {
+    public String getAccNum(String cardid) throws Exception {
         Map<String, String> map = new HashMap<>();
         map.put("Percode", cardid);
         map.put("Time", MyTimeUtils.getNowString());
@@ -118,7 +118,7 @@ public class TransferYueModel {
      * @return
      * @throws Throwable
      */
-    private String getCardAccNum(String accnum) throws Exception{
+    public String getCardAccNum(String accnum) throws Exception{
         Map<String, String> map = new HashMap<>();
         map.put("AccNum", accnum);
         map.put("CardStatus", "2");
@@ -251,7 +251,7 @@ public class TransferYueModel {
                     map.put("Code", "code");
                     map.put("Time", MyTimeUtils.getNowString());
                     map.put("Sign", SignUtils.sign(map));
-                    LogUtils.i(map.toString());
+                    //LogUtils.i(map.toString());
                     FormBody.Builder postdata = new FormBody.Builder();
                     for (String key : map.keySet()) {
                         postdata.add(key, map.get(key));

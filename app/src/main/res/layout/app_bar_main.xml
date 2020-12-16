@@ -468,7 +468,8 @@
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="48dp"
-                                android:src="@drawable/ic_bus_outline"/>
+                                android:padding="3dp"
+                                android:src="@drawable/ic_inf"/>
                             <TextView
                                 android:layout_marginTop="8dp"
                                 android:text="LZU网盘"
@@ -486,7 +487,7 @@
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="48dp"
-                                android:src="@drawable/ic_bus_outline"/>
+                                android:src="@drawable/ic_yuehuzhuan"/>
                             <TextView
                                 android:layout_marginTop="8dp"
                                 android:text="余额互转"
@@ -504,10 +505,29 @@
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="48dp"
-                                android:src="@drawable/ic_bus_outline"/>
+                                android:src="@drawable/ic_paydf"/>
                             <TextView
                                 android:layout_marginTop="8dp"
                                 android:text="快交电费"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:padding="3dp"
+                            android:orientation="vertical"
+                            android:onClick="@{v -> mainViewModelAppBar.reSetPwd()}">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="48dp"
+                                android:padding="1dp"
+                                android:src="@drawable/ic_resetpwd"/>
+                            <TextView
+                                android:layout_marginTop="8dp"
+                                android:text="修改密码"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
                         </LinearLayout>

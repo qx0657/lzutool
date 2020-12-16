@@ -12,9 +12,11 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -24,6 +26,7 @@ import androidx.core.content.ContextCompat;
 import androidx.databinding.BaseObservable;
 import androidx.databinding.Bindable;
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.blankj.utilcode.constant.PermissionConstants;
 import com.blankj.utilcode.util.AppUtils;
@@ -36,7 +39,9 @@ import com.blankj.utilcode.util.RegexUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.blankj.utilcode.util.UriUtils;
 import com.blankj.utilcode.util.Utils;
+import com.google.android.material.textfield.TextInputEditText;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -44,6 +49,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import fun.qianxiao.lzutool.BR;
 import fun.qianxiao.lzutool.R;
@@ -65,6 +71,7 @@ import fun.qianxiao.lzutool.ui.main.IMainView;
 import fun.qianxiao.lzutool.ui.main.MainDataBadingActivity;
 import fun.qianxiao.lzutool.ui.main.model.lzuoafileupload.FileUploadModel;
 import fun.qianxiao.lzutool.ui.main.model.qxj.QxjModel;
+import fun.qianxiao.lzutool.ui.main.model.resetpwd.ReSetPwdModel;
 import fun.qianxiao.lzutool.ui.main.model.schoolbus.SchoolBusModel;
 import fun.qianxiao.lzutool.ui.main.model.undergraduatecertificate.SchoolReportDownloadModel;
 import fun.qianxiao.lzutool.ui.personalinf.PersonalnfActivity;
@@ -92,6 +99,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
     private GetBaseInfoModel getBaseInfoModel;
     private QxjModel qxjModel;
     private MyLoadingDialog loadingDialog;
+    private String zhxgcookie;
     private final int CHOISEFILE_REQUESTCODE = 1001;
 
     public MainViewModel(MainDataBadingActivity mainActivity) {
@@ -230,6 +238,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                     @Override
                     public void onLoginZhxgGetJsessionidAndRouteSuccess(String zhxgcookies) {
                         LogUtils.i(zhxgcookies);
+                        MainViewModel.this.zhxgcookie = zhxgcookies;
                         if(user.getDormInfo()==null){
                             if(!isYjs){
                                 //获取宿舍信息
@@ -242,7 +251,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                                         //更新UI 宿舍名称
                                         notifyPropertyChanged(BR.user);
                                         //获取宿舍电费
-                                        getDromBlance(dormInfo.getDormno());
+                                        getDromBlance(dormInfo.getDormno(),true);
                                     }
 
                                     @Override
@@ -254,7 +263,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                             }
                         }else{
                             //获取宿舍电费
-                            getDromBlance(user.getDormInfo().getDormno());
+                            getDromBlance(user.getDormInfo().getDormno(),true);
                         }
                         //获取请假状态
                         if(qxjModel == null){
@@ -316,26 +325,102 @@ public class MainViewModel extends BaseObservable implements IClickView {
 
 
     //获取宿舍电费
-    private void getDromBlance(String dormno){
+    private void getDromBlance(String dormno,boolean isSilent){
         LogUtils.i("获取宿舍电费:"+dormno);
-        getBaseInfoModel.getDormBlance(dormno, new GetBaseInfoModel.GetDormBlanceCallBack() {
+        if(!isSilent){
+            openLoadingDialog("正在获取宿舍电费");
+        }
+        getBaseInfoModel.getDormDetailInfo(dormno, new GetBaseInfoModel.GetDormDetailInfoCallBack() {
             @Override
-            public void onGetDormBlanceSuccess(String blance,String areano,String buildingno,String floorno,String roomid) {
-                LogUtils.i(blance);
+            public void onGetDormDetailInfoSuccess(String areano,String buildingno,String floorno,String roomid) {
+                user.getDormInfo().setBlance("正在查询");
+                notifyPropertyChanged(BR.user);
+                LogUtils.i("从浅笑服务器获取宿舍基本信息",
+                        "areano:"+areano,
+                        "buildingno:"+buildingno,
+                        "floorno:"+floorno,
+                        "roomid:"+roomid
+                        );
                 //if(flag){
-                closeLoadingDialog();
+                //closeLoadingDialog();
                 //}
                 user.getDormInfo().setAreano(areano);
                 user.getDormInfo().setBuildingno(buildingno);
                 user.getDormInfo().setFloorno(floorno);
                 user.getDormInfo().setRoomno(roomid);
-                user.getDormInfo().setBlance(blance);
-                //更新UI 电费
-                notifyPropertyChanged(BR.user);
+                //重新获取电费
+                String login_uid = MySpUtils.getString("login_uid");
+                String login_pwd = MySpUtils.getString("login_pwd");
+                if(TextUtils.isEmpty(login_uid)||TextUtils.isEmpty(login_pwd)){
+                    return;
+                }
+                lzuloginModel.loginGetTGT(login_uid, login_pwd, new LzuloginModel.LoginGetTGTCallBack() {
+                    @Override
+                    public void onLoginGetTGTSuccess(String tgt) {
+                        lzuloginModel.loginEcardGetSid(tgt, new LzuloginModel.LoginEcardGetSidCallBack() {
+                            @Override
+                            public void onLoginEcardGetSidSuccess(Map<String, String> ecardcookie) {
+                                new EcardServicesModel().queryDormBlance(MyCookieUtils.map2cookieStr(ecardcookie),
+                                        user.getDormInfo().getAreano(),
+                                        user.getDormInfo().getBuildingno(),
+                                        user.getDormInfo().getFloorno(),
+                                        user.getDormInfo().getRoomno(),
+                                        new Observer<String>() {
+                                            @Override
+                                            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                                            }
+
+                                            @Override
+                                            public void onNext(@io.reactivex.annotations.NonNull String blance) {
+                                                LogUtils.i(blance);
+                                                closeLoadingDialog();
+                                                user.getDormInfo().setBlance(blance+"度");
+                                                //更新UI 电费
+                                                notifyPropertyChanged(BR.user);
+                                            }
+
+                                            @Override
+                                            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                                                closeLoadingDialog();
+                                                LogUtils.e(e.getMessage());
+                                                if(!isSilent){
+                                                    ToastUtils.showShort(e.getMessage());
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onComplete() {
+
+                                            }
+                                        });
+                            }
+
+                            @Override
+                            public void onLoginEcardGetSidError(String error) {
+                                closeLoadingDialog();
+                                LogUtils.e(error);
+                                if(!isSilent){
+                                    ToastUtils.showShort(error);
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onLoginGetTGTError(String error) {
+                        closeLoadingDialog();
+                        LogUtils.e(error);
+                        if(!isSilent){
+                            ToastUtils.showShort(error);
+                        }
+                    }
+                });
+
             }
 
             @Override
-            public void onGetDormBlanceError(String error) {
+            public void onGetDormDetailInfoError(String error) {
                 LogUtils.e(error);
                 //if(flag){
                 closeLoadingDialog();
@@ -749,6 +834,10 @@ public class MainViewModel extends BaseObservable implements IClickView {
                 .show();
     }
 
+    /**
+     * 校园卡挂失 解挂点击
+     * @param isLose
+     */
     @Override
     public void resportCardLoss(boolean isLose) {
         if(user == null){
@@ -769,8 +858,6 @@ public class MainViewModel extends BaseObservable implements IClickView {
                     @Override
                     public void onLoginEcardGetSidSuccess(Map<String,String> ecardcookie) {
                         LogUtils.i(ecardcookie);
-                        ecardcookie.put("iPlanetDirectoryPro",tgt);
-
                         getBaseInfoModel.getCardAccNum(ecardcookie, new GetBaseInfoModel.GetCardAccNumCallBack() {
                             @Override
                             public void onGetCardAccNumSuccess(String cardAccNum) {
@@ -910,6 +997,9 @@ public class MainViewModel extends BaseObservable implements IClickView {
 
     }
 
+    /**
+     * 余额互转
+     */
     @Override
     public void transferYue() {
         if(user == null){
@@ -950,9 +1040,301 @@ public class MainViewModel extends BaseObservable implements IClickView {
         }).show(((FragmentActivity)context).getSupportFragmentManager(),"TransferYueDialogFragment");
     }
 
+    /**
+     * 快交电费
+     */
     @Override
     public void payForElectricity() {
-        ToastUtils.showShort("等待开发");
+        if(user == null){
+            ToastUtils.showShort("请登录后使用");
+            lzuloginModel.showLoginDialog();
+            return;
+        }
+        String login_uid = MySpUtils.getString("login_uid");
+        String login_pwd = MySpUtils.getString("login_pwd");
+        if(TextUtils.isEmpty(login_uid)||TextUtils.isEmpty(login_pwd)){
+            return;
+        }
+        if(user.getDormInfo()==null){
+            ToastUtils.showShort("请先设置宿舍");
+            setDormInfo();
+            return;
+        }
+        View view = View.inflate(context, R.layout.dialog_payelectricity, null);
+        TextView tv_mydorminfo_payelectricity_dialog = view.findViewById(R.id.tv_mydorminfo_payelectricity_dialog);
+        tv_mydorminfo_payelectricity_dialog.setText(user.getDormInfo().getDorm());
+        TextView tv_mydormblance_payelectricity_dialog = view.findViewById(R.id.tv_mydormblance_payelectricity_dialog);
+        tv_mydormblance_payelectricity_dialog.setText(user.getDormInfo().getBlance());
+        AlertDialog mydialog = new AlertDialog.Builder(context)
+                .setTitle("电费缴纳")
+                .setView(view)
+                .setNegativeButton("取消",null)
+                .setPositiveButton("确定",(dialog, which) -> {
+                    RadioGroup rg_fromtype_transferyue_df = view.findViewById(R.id.rg_fromtype_transferyue_df);
+                    TextInputEditText tie_money_payelectricity_dialog = view.findViewById(R.id.tie_money_payelectricity_dialog);
+                    TextInputEditText tie_paypwd_payelectricity_dialog = view.findViewById(R.id.tie_paypwd_payelectricity_dialog);
+                    AtomicReference<Boolean> isUseYue = new AtomicReference<>(true);
+                    rg_fromtype_transferyue_df.setOnCheckedChangeListener((group, checkedId) -> isUseYue.set(checkedId == R.id.rb_yue_payelectricity_dialog));
+                    String money = tie_money_payelectricity_dialog.getText().toString();
+                    if(TextUtils.isEmpty(money)){
+                        ToastUtils.showShort("请输入充值金额");
+                        tie_money_payelectricity_dialog.requestFocus();
+                        return;
+                    }
+                    String paypwd = tie_paypwd_payelectricity_dialog.getText().toString();
+                    if(TextUtils.isEmpty(paypwd)){
+                        ToastUtils.showShort("请输入支付密码");
+                        tie_paypwd_payelectricity_dialog.requestFocus();
+                        return;
+                    }
+                    if(paypwd.length()!=6){
+                        ToastUtils.showShort("请输入6位支付密码");
+                        tie_paypwd_payelectricity_dialog.requestFocus();
+                        return;
+                    }
+                    openLoadingDialog("正在缴费");
+                    lzuloginModel.loginGetTGT(login_uid, login_pwd, new LzuloginModel.LoginGetTGTCallBack() {
+                        @Override
+                        public void onLoginGetTGTSuccess(String tgt) {
+                            lzuloginModel.loginEcardGetSid(tgt, new LzuloginModel.LoginEcardGetSidCallBack() {
+                                @Override
+                                public void onLoginEcardGetSidSuccess(Map<String, String> ecardcookie) {
+                                    try{
+                                        JSONObject jsonObject = new JSONObject();
+                                        jsonObject.put("areano",user.getDormInfo().getAreano());
+                                        jsonObject.put("buildingno",user.getDormInfo().getBuildingno());
+                                        jsonObject.put("floorno",user.getDormInfo().getFloorno());
+                                        jsonObject.put("roomno",user.getDormInfo().getRoomno());
+                                        getBaseInfoModel.getCardAccNum(ecardcookie, new GetBaseInfoModel.GetCardAccNumCallBack() {
+                                            @Override
+                                            public void onGetCardAccNumSuccess(String cardAccNum) {
+                                                new EcardServicesModel().useEcardPayForElectricity(MyCookieUtils.map2cookieStr(ecardcookie),
+                                                        isUseYue.get(),cardAccNum,paypwd, money, jsonObject, new Observer<Boolean>() {
+                                                            @Override
+                                                            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                                                            }
+
+                                                            @Override
+                                                            public void onNext(@io.reactivex.annotations.NonNull Boolean aBoolean) {
+                                                                closeLoadingDialog();
+                                                                ToastUtils.showShort("缴费成功");
+                                                            }
+
+                                                            @Override
+                                                            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                                                                closeLoadingDialog();
+                                                                ToastUtils.showShort(e.getMessage());
+                                                            }
+
+                                                            @Override
+                                                            public void onComplete() {
+
+                                                            }
+                                                        });
+                                            }
+
+                                            @Override
+                                            public void onGetCardAccNumError(String error) {
+
+                                            }
+                                        });
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                @Override
+                                public void onLoginEcardGetSidError(String error) {
+
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onLoginGetTGTError(String error) {
+
+                        }
+                    });
+                })
+                .show();
+        view.findViewById(R.id.tie_money_payelectricity_dialog).requestFocus();
+        tv_mydorminfo_payelectricity_dialog.setOnClickListener(v -> {
+            mydialog.dismiss();
+            setDormInfo();
+        });
+    }
+
+    /**
+     * 修改密码点击
+     */
+    @Override
+    public void reSetPwd() {
+        if(user == null){
+            ToastUtils.showShort("请登录后使用");
+            lzuloginModel.showLoginDialog();
+            return;
+        }
+        String login_uid = MySpUtils.getString("login_uid");
+        String login_pwd = MySpUtils.getString("login_pwd");
+        if(TextUtils.isEmpty(login_uid)||TextUtils.isEmpty(login_pwd)){
+            return;
+        }
+        AtomicInteger resetItem = new AtomicInteger();
+        new AlertDialog.Builder(context)
+                .setTitle("请选择要修改的密码")
+                .setSingleChoiceItems(new String[]{"账户密码","校园卡支付密码"}, 0, (dialog, which) -> resetItem.set(which))
+                .setPositiveButton("确定",(dialog, which) -> {
+                    LinearLayout linearLayout = new LinearLayout(context);
+                    linearLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
+                    linearLayout.setPadding(ConvertUtils.dp2px(20),ConvertUtils.dp2px(15),ConvertUtils.dp2px(20),0);
+                    EditText editText = new EditText(context);
+                    if(resetItem.get()==0){
+                        editText.setHint("请输入新密码");
+                    }else{
+                        editText.setHint("请输入新支付密码");
+                    }
+                    linearLayout.addView(editText,-1,-2);
+                    new AlertDialog.Builder(context)
+                            .setTitle("请输入新密码")
+                            .setView(linearLayout)
+                            .setPositiveButton("修改",(dialog1, which1) -> {
+                                String newpwd = editText.getText().toString().trim();
+                                if(TextUtils.isEmpty(newpwd)){
+                                    editText.requestFocus();
+                                    ToastUtils.showShort(resetItem.get()==0?"请输入新密码":"请输入新支付密码");
+                                }else{
+                                    if(resetItem.get()==1&&newpwd.length()!=6){
+                                        ToastUtils.showShort("支付密码应为6位");
+                                        return;
+                                    }
+                                    KeyboardUtils.hideSoftInput(editText);
+                                    openLoadingDialog("正在修改");
+                                    lzuloginModel.loginGetTGT(login_uid, login_pwd, new LzuloginModel.LoginGetTGTCallBack() {
+                                        @Override
+                                        public void onLoginGetTGTSuccess(String tgt) {
+                                            if(resetItem.get()==0){
+                                                //修改个人工作台密码
+                                                lzuloginModel.getStByTGT(tgt, new LzuloginModel.GetStByTGTCallBack() {
+                                                    @Override
+                                                    public void onGetStByTGTSuccess(String st) {
+                                                        lzuloginModel.loginMyLzu(tgt, st, new Observer<String>() {
+                                                            @Override
+                                                            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                                                            }
+
+                                                            @Override
+                                                            public void onNext(@io.reactivex.annotations.NonNull String mylzucookie) {
+                                                                //LogUtils.i(mylzucookie);
+                                                                Map<String,String> map = MyCookieUtils.cookieStr2map(mylzucookie);
+                                                                map.put("CASTGC",tgt);
+                                                                map.put("iPlanetDirectoryPro",tgt);
+                                                                new ReSetPwdModel().reSetPwd(MyCookieUtils.map2cookieStr(map), login_pwd, newpwd, new Observer<Boolean>() {
+                                                                    @Override
+                                                                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                                                                    }
+
+                                                                    @Override
+                                                                    public void onNext(@io.reactivex.annotations.NonNull Boolean aBoolean) {
+                                                                        closeLoadingDialog();
+                                                                        ToastUtils.showShort("个人密码修改成功");
+                                                                        MySpUtils.save("login_pwd",newpwd);
+                                                                    }
+
+                                                                    @Override
+                                                                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                                                                        closeLoadingDialog();
+                                                                        LogUtils.e(e.getMessage());
+                                                                        ToastUtils.showShort(e.getMessage());
+                                                                    }
+
+                                                                    @Override
+                                                                    public void onComplete() {
+
+                                                                    }
+                                                                });
+                                                            }
+
+                                                            @Override
+                                                            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                                                                closeLoadingDialog();
+                                                                LogUtils.e(e.getMessage());
+                                                                ToastUtils.showShort(e.getMessage());
+                                                            }
+
+                                                            @Override
+                                                            public void onComplete() {
+
+                                                            }
+                                                        });
+                                                    }
+
+                                                    @Override
+                                                    public void onGetStByTGTError(String error) {
+                                                        closeLoadingDialog();
+                                                        LogUtils.e(error);
+                                                        ToastUtils.showShort(error);
+                                                    }
+                                                });
+                                            }else{
+                                                //修改支付密码
+                                                lzuloginModel.loginEcardGetSid(tgt, new LzuloginModel.LoginEcardGetSidCallBack() {
+                                                    @Override
+                                                    public void onLoginEcardGetSidSuccess(Map<String, String> ecardcookie) {
+                                                        new ReSetPwdModel().reSetPayPwd(MyCookieUtils.map2cookieStr(ecardcookie), newpwd, new Observer<Boolean>() {
+                                                            @Override
+                                                            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                                                            }
+
+                                                            @Override
+                                                            public void onNext(@io.reactivex.annotations.NonNull Boolean aBoolean) {
+                                                                closeLoadingDialog();
+                                                                ToastUtils.showShort("支付密码修改成功");
+                                                            }
+
+                                                            @Override
+                                                            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                                                                closeLoadingDialog();
+                                                                LogUtils.e(e.getMessage());
+                                                                ToastUtils.showShort(e.getMessage());
+                                                            }
+
+                                                            @Override
+                                                            public void onComplete() {
+
+                                                            }
+                                                        });
+                                                    }
+
+                                                    @Override
+                                                    public void onLoginEcardGetSidError(String error) {
+                                                        closeLoadingDialog();
+                                                        LogUtils.e(error);
+                                                        ToastUtils.showShort(error);
+                                                    }
+                                                });
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onLoginGetTGTError(String error) {
+                                            closeLoadingDialog();
+                                            LogUtils.e(error);
+                                            ToastUtils.showShort(error);
+                                        }
+                                    });
+
+                                }
+                            })
+                            .setNegativeButton("取消",null)
+                            .show();
+                    editText.requestFocus();
+                })
+                .setNegativeButton("取消",null)
+                .show();
     }
 
     private void startChooseFileIntent(){
@@ -963,6 +1345,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
         ((Activity)context).startActivityForResult(intent, CHOISEFILE_REQUESTCODE);
     }
 
+    //OA文件上传
     private void filesUpload(List<String> uploadFileList){
         UploadFragmentDialog uploadFragmentDialog = new UploadFragmentDialog(uploadFileList,false);
         uploadFragmentDialog.show(((FragmentActivity)context).getSupportFragmentManager(),"UploadFragmentDialog");
@@ -1178,7 +1561,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                     MySpUtils.SaveObjectData("dormInfo",dormInfo);
                     notifyPropertyChanged(BR.user);
                     ToastUtils.showShort("设置成功，正在查询电费");
-                    getDromBlance(dormno);
+                    getDromBlance(dormno,false);
                 })
                 .setNegativeButton("取消",null)
                 .show();
