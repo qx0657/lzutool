@@ -748,7 +748,7 @@ public class PersonalnfFragment extends BaseFragment implements IPersoncalnfFrag
      */
     @Override
     public boolean onBackPressed(){
-        if(adapter.isMulSelect()){
+        if(adapter!=null&&adapter.isMulSelect()){
             adapter.exitMulSelect();
             return true;
         }

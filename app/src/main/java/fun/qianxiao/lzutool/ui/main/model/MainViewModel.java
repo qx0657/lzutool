@@ -181,19 +181,15 @@ public class MainViewModel extends BaseObservable implements IClickView {
             lzuloginModel.showLoginDialog();
             return;
         }
-        if(flag){
-            if(user.getDormInfo()!=null){
-                user.getDormInfo().setBlance(null);
-            }
-            user.setCardInfo(null);
-            user.setSchoolNetInfo(null);
-            user.setQxjStatu(null);
-            //更新UI
-            notifyPropertyChanged(BR.user);
-            openLoadingDialog("正在刷新");
-        }
         if(getBaseInfoModel == null){
             getBaseInfoModel = new GetBaseInfoModel(context);
+        }
+        if(onlyRefreshWallet){
+            user.setCardInfo(null);
+            notifyPropertyChanged(BR.user);
+            if(flag){
+                openLoadingDialog("正在刷新");
+            }
         }
         getBaseInfoModel.getWalletMoney(user.getAccnum(), new GetBaseInfoModel.GetWalletMoneyModelCallBack() {
             @Override
@@ -224,6 +220,17 @@ public class MainViewModel extends BaseObservable implements IClickView {
         });
         if(onlyRefreshWallet){
             return;
+        }
+        if(flag){
+            if(user.getDormInfo()!=null){
+                user.getDormInfo().setBlance(null);
+            }
+            user.setCardInfo(null);
+            user.setSchoolNetInfo(null);
+            user.setQxjStatu(null);
+            //更新UI
+            notifyPropertyChanged(BR.user);
+            openLoadingDialog("正在刷新");
         }
         String login_uid = MySpUtils.getString("login_uid");
         String login_pwd = MySpUtils.getString("login_pwd");
@@ -1065,16 +1072,16 @@ public class MainViewModel extends BaseObservable implements IClickView {
         tv_mydorminfo_payelectricity_dialog.setText(user.getDormInfo().getDorm());
         TextView tv_mydormblance_payelectricity_dialog = view.findViewById(R.id.tv_mydormblance_payelectricity_dialog);
         tv_mydormblance_payelectricity_dialog.setText(user.getDormInfo().getBlance());
+        final boolean[] isUseYue = {true};
+        RadioGroup rg_fromtype_transferyue_df = view.findViewById(R.id.rg_fromtype_transferyue_df);
+        rg_fromtype_transferyue_df.setOnCheckedChangeListener((group, checkedId) -> isUseYue[0] =checkedId == R.id.rb_yue_payelectricity_dialog);
         AlertDialog mydialog = new AlertDialog.Builder(context)
                 .setTitle("电费缴纳")
                 .setView(view)
                 .setNegativeButton("取消",null)
                 .setPositiveButton("确定",(dialog, which) -> {
-                    RadioGroup rg_fromtype_transferyue_df = view.findViewById(R.id.rg_fromtype_transferyue_df);
                     TextInputEditText tie_money_payelectricity_dialog = view.findViewById(R.id.tie_money_payelectricity_dialog);
                     TextInputEditText tie_paypwd_payelectricity_dialog = view.findViewById(R.id.tie_paypwd_payelectricity_dialog);
-                    AtomicReference<Boolean> isUseYue = new AtomicReference<>(true);
-                    rg_fromtype_transferyue_df.setOnCheckedChangeListener((group, checkedId) -> isUseYue.set(checkedId == R.id.rb_yue_payelectricity_dialog));
                     String money = tie_money_payelectricity_dialog.getText().toString();
                     if(TextUtils.isEmpty(money)){
                         ToastUtils.showShort("请输入充值金额");
@@ -1092,6 +1099,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                         tie_paypwd_payelectricity_dialog.requestFocus();
                         return;
                     }
+                    KeyboardUtils.hideSoftInput(tie_paypwd_payelectricity_dialog);
                     openLoadingDialog("正在缴费");
                     lzuloginModel.loginGetTGT(login_uid, login_pwd, new LzuloginModel.LoginGetTGTCallBack() {
                         @Override
@@ -1109,7 +1117,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                                             @Override
                                             public void onGetCardAccNumSuccess(String cardAccNum) {
                                                 new EcardServicesModel().useEcardPayForElectricity(MyCookieUtils.map2cookieStr(ecardcookie),
-                                                        isUseYue.get(),cardAccNum,paypwd, money, jsonObject, new Observer<Boolean>() {
+                                                        isUseYue[0],cardAccNum,paypwd, money, jsonObject, new Observer<Boolean>() {
                                                             @Override
                                                             public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
 
@@ -1119,6 +1127,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                                                             public void onNext(@io.reactivex.annotations.NonNull Boolean aBoolean) {
                                                                 closeLoadingDialog();
                                                                 ToastUtils.showShort("缴费成功");
+                                                                Refresh(true,true);
                                                             }
 
                                                             @Override

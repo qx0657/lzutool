@@ -148,6 +148,7 @@ public class EcardServicesModel {
      * @param observer
      */
     public void useEcardPayForElectricity(String zhyktcookie, boolean isUseYue, String cardAccNUm, String pwd, String paymoney, JSONObject dorminfo, Observer<Boolean> observer){
+        //LogUtils.i("isUseYue:"+isUseYue);
         getElectricityPayToken(zhyktcookie, new Observer<String>() {
             @Override
             public void onSubscribe(@NonNull Disposable d) {
