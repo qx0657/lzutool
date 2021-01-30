@@ -16,6 +16,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import fun.qianxiao.lzutool.androidcrashhelper.CrashHandler;
 import fun.qianxiao.lzutool.utils.MyVolleyManager;
 
 /**
@@ -29,6 +30,8 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         mInstance = this;
+        //初始化异常补货
+        CrashHandler.getInstance().init(this);
         //初始化vollery单例
         MyVolleyManager.init(this);
         //开启Log日志

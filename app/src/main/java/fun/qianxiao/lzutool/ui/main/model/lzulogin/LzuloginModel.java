@@ -33,6 +33,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import fun.qianxiao.lzutool.bean.User;
+import fun.qianxiao.lzutool.ui.main.model.baseinfo.GetBaseInfoModel;
 import fun.qianxiao.lzutool.utils.HttpConnectionUtil;
 import fun.qianxiao.lzutool.utils.MyCookieUtils;
 import fun.qianxiao.lzutool.utils.MyOkhttpUtils;
@@ -44,6 +45,7 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -116,15 +118,53 @@ public class LzuloginModel {
                                                 assert userInfo != null;
                                                 User user = new User();
                                                 user.setCardid(userInfo.optString("xykh"));
-                                                user.setMailpf(userInfo.optString("dzxx"));
-                                                user.setName(userInfo.optString("xm"));
-                                                user.setPhone(userInfo.optString("yddh"));
-                                                user.setCollege(userInfo.optString("dwmc"));
-                                                if(!userInfo.isNull("zymc")){
-                                                    user.setMarjor(userInfo.optString("zymc"));
+                                                if(userInfo.isNull("dzxx")){
+                                                    LogUtils.i("邮箱前缀为空");
+                                                    new GetBaseInfoModel(context).getMailPf(userInfo.optString("xykh"), new Observer<String>() {
+                                                        @Override
+                                                        public void onSubscribe(@NonNull Disposable d) {
+
+                                                        }
+
+                                                        @Override
+                                                        public void onNext(@NonNull String s) {
+                                                            LogUtils.i(s);
+                                                            user.setMailpf(s);
+                                                            user.setName(userInfo.optString("xm"));
+                                                            user.setPhone(userInfo.optString("yddh"));
+                                                            user.setCollege(userInfo.optString("dwmc"));
+                                                            if(!userInfo.isNull("zymc")){
+                                                                user.setMarjor(userInfo.optString("zymc"));
+                                                            }
+                                                            user.setAccnum(userInfo.optString("etong_acc_no"));
+                                                            loginCallback.onLoginSuccess(user);
+                                                        }
+
+                                                        @Override
+                                                        public void onError(@NonNull Throwable e) {
+                                                            loginCallback.onLoginFail(e.getMessage());
+                                                        }
+
+                                                        @Override
+                                                        public void onComplete() {
+
+                                                        }
+                                                    });
+                                                }else {
+                                                    String mailpf = userInfo.optString("dzxx");
+                                                    if(mailpf.contains("@")){
+                                                        mailpf = mailpf.substring(0,mailpf.indexOf("@"));
+                                                    }
+                                                    user.setMailpf(mailpf);
+                                                    user.setName(userInfo.optString("xm"));
+                                                    user.setPhone(userInfo.optString("yddh"));
+                                                    user.setCollege(userInfo.optString("dwmc"));
+                                                    if(!userInfo.isNull("zymc")){
+                                                        user.setMarjor(userInfo.optString("zymc"));
+                                                    }
+                                                    user.setAccnum(userInfo.optString("etong_acc_no"));
+                                                    loginCallback.onLoginSuccess(user);
                                                 }
-                                                user.setAccnum(userInfo.optString("etong_acc_no"));
-                                                loginCallback.onLoginSuccess(user);
                                             }else{
                                                 loginCallback.onLoginFail("获取用户信息失败");
                                             }
@@ -376,6 +416,29 @@ public class LzuloginModel {
         void onLoginLzuMailError(String error);
     }
 
+    public void loginLzuMail(String mylzucookie, LoginLzuMailCallBack callBack){
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.POST,
+                "http://my.lzu.edu.cn/getMailUrl?t="+System.currentTimeMillis(),
+                response -> {
+                    LogUtils.i(response);
+                },
+                error -> {
+
+                }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = super.getHeaders();
+                if(headers == null || headers.equals(Collections.emptyMap())){
+                    headers = new HashMap<>();
+                }
+                headers.put("Cookie",mylzucookie);
+                return headers;
+            }
+        };
+        MyVolleyManager.getRequestQueue().add(stringRequest);
+    }
+
     /**
      * 登录兰大邮箱
      * @param callBack
@@ -392,6 +455,7 @@ public class LzuloginModel {
                 Request.Method.POST,
                 "https://mail.lzu.edu.cn/coremail/index.jsp?cus=1&sid=",
                 response1 -> {
+                    LogUtils.i(response1);
                     Matcher m = r.matcher(response1);
                     if(m.find()){
                         String newsid = m.group(1);

@@ -2,19 +2,32 @@ package fun.qianxiao.lzutool.ui.main;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.text.TextUtils;
+import android.text.method.HideReturnsTransformationMethod;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Menu;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Switch;
+import android.widget.TextView;
 
 import com.blankj.utilcode.util.BarUtils;
+import com.blankj.utilcode.util.KeyboardUtils;
 import com.blankj.utilcode.util.ToastUtils;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.viewpager.widget.ViewPager;
 
 import fun.qianxiao.lzutool.R;
 import fun.qianxiao.lzutool.base.BaseDataBadingActivity;
@@ -52,7 +65,6 @@ public class MainDataBadingActivity
     @Override
     protected void initView() {
         View headerView = binding.navView.getHeaderView(0);
-
         //设置侧滑栏和toolbar绑定 即toolbar左侧显示菜单按钮，可点击切换
         ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, binding.drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             @Override
@@ -183,10 +195,6 @@ public class MainDataBadingActivity
                     .show();
             return true;
         });
-        binding.layoutAppbarmain.llHealthpunchCloudtrusteeship.setOnLongClickListener(v -> {
-            binding.getMainViewModel().healthPunchCloudTrusteeshipCancle(v);
-            return true;
-        });
     }
 
     @SuppressLint("RtlHardcoded")
@@ -201,6 +209,7 @@ public class MainDataBadingActivity
         //默认合上校园卡卡片
         openOrCloseSchoolNetArea(null);
         new CheckUpdateManager(context).check(true);
+        //int d = 3/0;
     }
 
     @Override

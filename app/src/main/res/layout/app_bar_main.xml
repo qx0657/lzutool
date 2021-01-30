@@ -328,6 +328,7 @@
                                 android:layout_height="48dp"
                                 android:src="@drawable/ic_punch_outline"/>
                             <TextView
+                                android:id="@+id/tv_healthpunch_text"
                                 android:layout_marginTop="8dp"
                                 android:text="健康打卡"
                                 android:layout_width="wrap_content"

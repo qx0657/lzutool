@@ -35,6 +35,8 @@ import fun.qianxiao.lzutool.utils.MyTimeUtils;
 import fun.qianxiao.lzutool.utils.MyVolleyManager;
 import fun.qianxiao.lzutool.utils.SignUtils;
 import fun.qianxiao.lzutool.utils.Xml2JsonUtils;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
 
 /**
  * 基础信息获取
@@ -47,6 +49,34 @@ public class GetBaseInfoModel {
 
     public GetBaseInfoModel(Context context) {
         this.context = context;
+    }
+
+    public void getMailPf(String cardid, Observer<String> observer){
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.POST,
+                "https://appservice.lzu.edu.cn/easytong_app/easytong-app/easytong_app/GetAccInfoByPercode",
+                response -> {
+                    LogUtils.i(response);
+                    JSONObject jsonObject = Xml2JsonUtils.xml2json(response).optJSONObject("EasyTong");
+                    //LogUtils.i(jsonObject);
+                    assert jsonObject != null;
+                    if(jsonObject.optString("Code").equals("1")){
+                        String emailpf = jsonObject.optString("Email");
+                        observer.onNext(emailpf);
+                    }else{
+                        observer.onError(new Throwable(jsonObject.optString("Msg")));
+                    }
+                }, error -> observer.onError(new Throwable(error.toString()))){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> map = new HashMap<>();
+                map.put("Percode", cardid);
+                map.put("Time", MyTimeUtils.getNowString());
+                map.put("Sign", SignUtils.sign(map));
+                return map;
+            }
+        };
+        MyVolleyManager.getRequestQueue().add(stringRequest);
     }
 
     public interface GetWalletMoneyModelCallBack{

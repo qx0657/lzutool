@@ -8,6 +8,7 @@ import com.blankj.utilcode.util.ThreadUtils;
 
 import java.io.File;
 import java.net.URLConnection;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -102,7 +103,8 @@ public class FileUploadModel {
                     Response response = call.execute();//同步请求
                     String rsp = Objects.requireNonNull(response.body()).string();
                     if(rsp.contains("附件上传成功")){
-                        String pattern = "value=\'(2020_+.*?)\'>";
+                        Calendar calendar = Calendar.getInstance();
+                        String pattern = "value=\'("+calendar.get(Calendar.YEAR)+"_+.*?)\'>";
                         Pattern r = Pattern.compile(pattern);
                         Matcher m = r.matcher(rsp);
                         if(m.find()){

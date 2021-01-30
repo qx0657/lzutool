@@ -74,7 +74,7 @@ public class CheckUpdateManager implements ILoadingView {
         }
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                 Request.Method.GET,
-                "http://qianxiao.fun/app/lzutool/updateconfig.txt?t="+System.currentTimeMillis(),
+                "http://lzutool.qianxiao.fun/updateconfig.txt?t="+System.currentTimeMillis(),
                 null,
                 response -> {
                     try {

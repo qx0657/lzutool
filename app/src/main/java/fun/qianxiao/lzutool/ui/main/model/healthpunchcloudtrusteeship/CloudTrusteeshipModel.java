@@ -21,6 +21,51 @@ import fun.qianxiao.lzutool.utils.MyVolleyManager;
  * On 2020/10/3
  */
 public class CloudTrusteeshipModel {
+    public interface TrusteeshipSystemLoginCallBack{
+        void onTrusteeshipSystemLoginSuccess(String token, boolean ts);
+        void onTrusteeshipSystemLoginError(String error);
+    }
+
+    /**
+     * 云托管系统登录
+     * @param uid
+     * @param pwd
+     * @param callBack
+     */
+    public void TrusteeshipSystemLogin(String uid,String pwd,TrusteeshipSystemLoginCallBack callBack){
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.POST,
+                "https://mrsb.qianxiao.fun/api/login.php",
+                response -> {
+                    LogUtils.i(response);
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        if(jsonObject.optInt("code")==1){
+                            String token = jsonObject.optJSONObject("data").optString("token");
+                            callBack.onTrusteeshipSystemLoginSuccess(token,jsonObject.optJSONObject("data").optString("ts").equals("1"));
+                        }else{
+                            callBack.onTrusteeshipSystemLoginError(jsonObject.optString("msg"));
+                        }
+                    } catch (JSONException e) {
+                        callBack.onTrusteeshipSystemLoginError(e.getMessage());
+                    }
+
+                },error -> {callBack.onTrusteeshipSystemLoginError(error.getMessage());}){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> map = new HashMap<>();
+                map.put("uid",uid);
+                map.put("pwd",pwd);
+                map.put("tsp",String.valueOf(System.currentTimeMillis()/1000));
+                map.put("sign", EncryptUtils.encryptMD5ToString("uid="+uid+"&pwd="+pwd+"&tsp="+
+                        map.get("tsp")+
+                        "qianxiao"));
+                return map;
+            }
+        };
+        MyVolleyManager.getRequestQueue().add(stringRequest);
+    }
+
     public interface TrusteeshipOperationCallBack{
         void onTrusteeshipOperationSuccess(String res);
         void onTrusteeshipOperationError(String error);
@@ -28,82 +73,75 @@ public class CloudTrusteeshipModel {
 
     /**
      * 云托管提交
-     * @param uid
-     * @param pwd
+     * @param token
      * @param email
      * @param callBack
      */
-    public void trusteeshipSubmit(String uid,String pwd,String email,TrusteeshipOperationCallBack callBack){
-        StringRequest stringRequest = new StringRequest(
-                Request.Method.POST,
-                "http://mrsb.qianxiao.fun/addonedata.php",
-                response -> {
-                    LogUtils.i(response);
+    public void trusteeshipSubmit(String token,String email,TrusteeshipOperationCallBack callBack){
+        StringRequest stringRequest1 = new StringRequest(Request.Method.POST,
+                "https://mrsb.qianxiao.fun/api/trusteeShip.php",
+                response1 -> {
+                    LogUtils.i(response1);
                     try {
-                        JSONObject jsonObject = new JSONObject(response);
-                        if(jsonObject.optInt("code")==1){
+                        JSONObject jsonObject1 = new JSONObject(response1);
+                        if(jsonObject1.optInt("code")==1){
                             callBack.onTrusteeshipOperationSuccess("托管提交成功");
                         }else{
-                            callBack.onTrusteeshipOperationError(jsonObject.optString("message"));
+                            callBack.onTrusteeshipOperationError(jsonObject1.optString("msg"));
                         }
                     } catch (JSONException e) {
                         callBack.onTrusteeshipOperationError(e.getMessage());
                     }
-
-                },error -> {callBack.onTrusteeshipOperationError(error.getMessage());}){
+                },error -> callBack.onTrusteeshipOperationError(error.getMessage())){
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> map = new HashMap<>();
-                map.put("username",uid);
-                map.put("password",pwd);
+                map.put("token",token);
+                map.put("ts","1");
                 map.put("email",email);
-                map.put("timestamp",String.valueOf(System.currentTimeMillis()/1000));
-                map.put("parsign", EncryptUtils.encryptSHA1ToString("username="+uid+"&password="+pwd+"&email="+email+"&timestamp="+
-                        map.get("timestamp")+
+                map.put("tsp",String.valueOf(System.currentTimeMillis()/1000));
+                map.put("sign", EncryptUtils.encryptMD5ToString("token="+token+"&ts="+map.get("ts")+"&email="+map.get("email")+"&tsp="+
+                        map.get("tsp")+
                         "qianxiao"));
                 return map;
             }
         };
-        MyVolleyManager.getRequestQueue().add(stringRequest);
+        MyVolleyManager.getRequestQueue().add(stringRequest1);
     }
 
     /**
      * 取消托管
-     * @param uid
-     * @param pwd
-     * @param email
+     * @param token
      * @param callBack
      */
-    public void cancleTrusteeship(String uid,String pwd,String email,TrusteeshipOperationCallBack callBack){
-        StringRequest stringRequest = new StringRequest(
-                Request.Method.POST,
-                "http://mrsb.qianxiao.fun/deletedata.php",
-                response -> {
-                    LogUtils.i(response);
+    public void cancleTrusteeship(String token,TrusteeshipOperationCallBack callBack){
+        StringRequest stringRequest1 = new StringRequest(Request.Method.POST,
+                "https://mrsb.qianxiao.fun/api/trusteeShip.php",
+                response1 -> {
+                    LogUtils.i(response1);
                     try {
-                        JSONObject jsonObject = new JSONObject(response);
-                        if(jsonObject.optInt("code")==1){
-                            callBack.onTrusteeshipOperationSuccess("取消托管成功");
+                        JSONObject jsonObject1 = new JSONObject(response1);
+                        if(jsonObject1.optInt("code")==1){
+                            callBack.onTrusteeshipOperationSuccess("云托管取消成功");
                         }else{
-                            callBack.onTrusteeshipOperationError(jsonObject.optString("message"));
+                            callBack.onTrusteeshipOperationError(jsonObject1.optString("msg"));
                         }
                     } catch (JSONException e) {
                         callBack.onTrusteeshipOperationError(e.getMessage());
                     }
-                },error -> {callBack.onTrusteeshipOperationError(error.getMessage());}){
+                },error -> callBack.onTrusteeshipOperationError(error.getMessage())){
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> map = new HashMap<>();
-                map.put("username",uid);
-                map.put("password",pwd);
-                map.put("email",email);
-                map.put("timestamp",String.valueOf(System.currentTimeMillis()/1000));
-                map.put("parsign", EncryptUtils.encryptSHA1ToString("username="+uid+"&password="+pwd+"&email="+email+"&timestamp="+
-                        map.get("timestamp")+
+                map.put("token",token);
+                map.put("ts","0");
+                map.put("tsp",String.valueOf(System.currentTimeMillis()/1000));
+                map.put("sign", EncryptUtils.encryptMD5ToString("token="+token+"&ts="+map.get("ts")+"&tsp="+
+                        map.get("tsp")+
                         "qianxiao"));
                 return map;
             }
         };
-        MyVolleyManager.getRequestQueue().add(stringRequest);
+        MyVolleyManager.getRequestQueue().add(stringRequest1);
     }
 }

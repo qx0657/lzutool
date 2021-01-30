@@ -7,8 +7,11 @@ import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
@@ -18,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -191,6 +195,10 @@ public class MainViewModel extends BaseObservable implements IClickView {
                 openLoadingDialog("正在刷新");
             }
         }
+        MySpUtils.remove("mrsb_token");
+        ((MainDataBadingActivity)context).binding.layoutAppbarmain.tvHealthpunchText.setText("健康打卡");
+        ((MainDataBadingActivity)context).binding.layoutAppbarmain.tvHealthpunchText.setTextColor(Color.parseColor("#888888"));
+
         getBaseInfoModel.getWalletMoney(user.getAccnum(), new GetBaseInfoModel.GetWalletMoneyModelCallBack() {
             @Override
             public void onGetWalletMoneySuccess(String yu_e,String dzzh_yu_e) {
@@ -305,6 +313,39 @@ public class MainViewModel extends BaseObservable implements IClickView {
                         ToastUtils.showShort("onLoginZhxgGetJsessionidAndRouteError("+error+")");
                     }
                 });
+
+                lzuloginModel.getStByTGT(tgt, new LzuloginModel.GetStByTGTCallBack() {
+                    @Override
+                    public void onGetStByTGTSuccess(String st) {
+                        //获取健康打卡状态
+                        if(healthPunchModel == null){
+                            healthPunchModel = new HealthPunchModel();
+                        }
+                        healthPunchModel.getPunchStatus(st, user.getCardid(), new HealthPunchModel.GetPunchStatusCallBack() {
+                            @Override
+                            public void onGetPunchStatusSuccess(boolean dkzt) {
+                                if(dkzt){
+                                    ((MainDataBadingActivity)context).binding.layoutAppbarmain.tvHealthpunchText.setText("已打卡");
+                                    ((MainDataBadingActivity)context).binding.layoutAppbarmain.tvHealthpunchText.setTextColor(Color.parseColor("#32CD32"));
+                                }else{
+                                    ((MainDataBadingActivity)context).binding.layoutAppbarmain.tvHealthpunchText.setText("未打卡");
+                                    ((MainDataBadingActivity)context).binding.layoutAppbarmain.tvHealthpunchText.setTextColor(Color.parseColor("#FF4500"));
+                                }
+                            }
+
+                            @Override
+                            public void onGetPunchStatusError(String error) {
+                                ToastUtils.showShort("健康打卡状态获取失败");
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onGetStByTGTError(String error) {
+                        ToastUtils.showShort("健康打卡状态获取失败");
+                    }
+                });
+
             }
 
             @Override
@@ -505,49 +546,70 @@ public class MainViewModel extends BaseObservable implements IClickView {
             return;
         }
         openLoadingDialog("正在打卡");
-        String login_uid = MySpUtils.getString("login_uid");
-        String login_pwd = MySpUtils.getString("login_pwd");
-        lzuloginModel.loginGetTGT(login_uid, login_pwd, new LzuloginModel.LoginGetTGTCallBack() {
+        if(((MainDataBadingActivity)context).binding.layoutAppbarmain.tvHealthpunchText.getText().equals("健康打卡")){
+            String login_uid = MySpUtils.getString("login_uid");
+            String login_pwd = MySpUtils.getString("login_pwd");
+            lzuloginModel.loginGetTGT(login_uid, login_pwd, new LzuloginModel.LoginGetTGTCallBack() {
 
-            @Override
-            public void onLoginGetTGTSuccess(String tgt) {
-                LogUtils.i(tgt);
-                lzuloginModel.getStByTGT(tgt, new LzuloginModel.GetStByTGTCallBack() {
-                    @Override
-                    public void onGetStByTGTSuccess(String st) {
-                        LogUtils.i(st);
-                        healthPunchModel.punch(st, user.getCardid(), new HealthPunchModel.HealthPunchCallBack() {
-                            @Override
-                            public void onHealthPunchSuccess() {
-                                closeLoadingDialog();
-                                iMainView.ShowSnackbar(ContextCompat.getColor(context, iMainView.getColorPrimaryId()),"打卡成功");
-                            }
+                @Override
+                public void onLoginGetTGTSuccess(String tgt) {
+                    LogUtils.i(tgt);
+                    lzuloginModel.getStByTGT(tgt, new LzuloginModel.GetStByTGTCallBack() {
+                        @Override
+                        public void onGetStByTGTSuccess(String st) {
+                            LogUtils.i(st);
+                            healthPunchModel.punch(st, user.getCardid(), new HealthPunchModel.HealthPunchCallBack() {
+                                @Override
+                                public void onHealthPunchSuccess() {
+                                    closeLoadingDialog();
+                                    iMainView.ShowSnackbar(ContextCompat.getColor(context, iMainView.getColorPrimaryId()),"打卡成功");
+                                    ((MainDataBadingActivity)context).binding.layoutAppbarmain.tvHealthpunchText.setText("已打卡");
+                                    ((MainDataBadingActivity)context).binding.layoutAppbarmain.tvHealthpunchText.setTextColor(Color.parseColor("#32CD32"));
+                                }
 
-                            @Override
-                            public void onHealthPunchError(String error) {
-                                LogUtils.e(error);
-                                ToastUtils.showShort(error);
-                                closeLoadingDialog();
-                            }
-                        });
-                    }
+                                @Override
+                                public void onHealthPunchError(String error) {
+                                    LogUtils.e(error);
+                                    ToastUtils.showShort(error);
+                                    closeLoadingDialog();
+                                }
+                            });
+                        }
 
-                    @Override
-                    public void onGetStByTGTError(String error) {
-                        LogUtils.e(error);
-                        ToastUtils.showShort(error);
-                        closeLoadingDialog();
-                    }
-                });
-            }
+                        @Override
+                        public void onGetStByTGTError(String error) {
+                            LogUtils.e(error);
+                            ToastUtils.showShort(error);
+                            closeLoadingDialog();
+                        }
+                    });
+                }
 
-            @Override
-            public void onLoginGetTGTError(String error) {
-                LogUtils.e(error);
-                ToastUtils.showShort(error);
-                closeLoadingDialog();
-            }
-        });
+                @Override
+                public void onLoginGetTGTError(String error) {
+                    LogUtils.e(error);
+                    ToastUtils.showShort(error);
+                    closeLoadingDialog();
+                }
+            });
+        }else{
+            //已通过获取状态获取到了accesstoken和info 直接提交
+            healthPunchModel.punch(new HealthPunchModel.HealthPunchCallBack() {
+                @Override
+                public void onHealthPunchSuccess() {
+                    closeLoadingDialog();
+                    iMainView.ShowSnackbar(ContextCompat.getColor(context, iMainView.getColorPrimaryId()),"打卡成功");
+                }
+
+                @Override
+                public void onHealthPunchError(String error) {
+                    //存在一种可能 accesstoken过期
+                    ((MainDataBadingActivity)context).binding.layoutAppbarmain.tvHealthpunchText.setText("健康打卡");
+                    healthPunch(view);
+                }
+            });
+        }
+
     }
 
     /**
@@ -567,81 +629,136 @@ public class MainViewModel extends BaseObservable implements IClickView {
         if(TextUtils.isEmpty(login_uid)||TextUtils.isEmpty(login_pwd)){
             return;
         }
-        new AlertDialog.Builder(context)
-                .setTitle("健康打卡云托管")
-                .setMessage("目前支持打卡云托管服务，提交账户信息至服务器，每日由服务器自动上报打卡，免去您每日打卡的烦恼。\n" +
-                        "您也可以访问云托管网页系统（http://mrsb.qianxiao.fun）手动提交或查看更多详情。\n" +
-                        "温馨提示：如需提交托管后取消托管，您可以长按健康打卡云托管图标取消或访问网页系统进行操作。\n" +
-                        "是否立即提交云托管？")
-                .setPositiveButton("立即云托管",(dialog, which) -> {
-                    if(cloudTrusteeshipModel == null){
-                        cloudTrusteeshipModel = new CloudTrusteeshipModel();
-                    }
-                    EditText editText = new EditText(context);
-                    editText.setHint("请输入提醒邮箱");
-                    LinearLayout l1 = new LinearLayout(context);
-                    l1.setOrientation(LinearLayout.VERTICAL);
-                    LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-                    lp1.setMargins(0, ConvertUtils.dp2px(20),0,0);
-                    l1.setLayoutParams(lp1);
-                    l1.setPadding(ConvertUtils.dp2px(10),0,ConvertUtils.dp2px(10),0);
-                    l1.addView(editText);
-                    TextView textView = new TextView(context);
-                    textView.setText("邮箱用于接受打卡结果，建议填写常用邮箱。（如未能正常接受邮件，请设置qianxiao.fun为域名白名单）");
-                    l1.addView(textView);
-                    AlertDialog dialog1 = new AlertDialog.Builder(context)
-                            .setTitle("健康打卡云托管")
-                            .setView(l1)
-                            .setPositiveButton("确定",null)
-                            .setNegativeButton("取消",null)
-                            .setNeutralButton("使用兰大邮箱",null)
-                            .show();
-                    editText.requestFocus();
-                    dialog1.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
-                        editText.setText(user.getMailpf()+"@lzu.edu.cn");
-                        editText.requestFocus();
-                        editText.setSelection(editText.getText().length());
-                    });
-                    dialog1.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-                        String email = editText.getText().toString().trim();
-                        if(TextUtils.isEmpty(email)){
-                            ToastUtils.showShort("请输入提醒邮箱");
-                            editText.requestFocus();
-                            if(!KeyboardUtils.isSoftInputVisible((Activity) context)){
-                                KeyboardUtils.showSoftInput(editText);
-                            }
-                        }else if(!RegexUtils.isEmail(email)){
-                            ToastUtils.showShort("邮箱非法");
-                            editText.requestFocus();
-                        }else{
-                            KeyboardUtils.hideSoftInput(editText);
-                            dialog1.dismiss();
-                            openLoadingDialog("正在提交");
-                            cloudTrusteeshipModel.trusteeshipSubmit(user.getMailpf(), login_pwd, email, new CloudTrusteeshipModel.TrusteeshipOperationCallBack() {
-                                @Override
-                                public void onTrusteeshipOperationSuccess(String res) {
-                                    closeLoadingDialog();
-                                    iMainView.ShowSnackbar(ContextCompat.getColor(context, iMainView.getColorPrimaryId()),res);
-                                }
+        if(cloudTrusteeshipModel == null){
+            cloudTrusteeshipModel = new CloudTrusteeshipModel();
+        }
+        String mrsb_token = MySpUtils.getString("mrsb_token");
+        if(TextUtils.isEmpty(mrsb_token)){
+            openLoadingDialog("登录系统");
+            cloudTrusteeshipModel.TrusteeshipSystemLogin(login_uid, login_pwd, new CloudTrusteeshipModel.TrusteeshipSystemLoginCallBack() {
+                @Override
+                public void onTrusteeshipSystemLoginSuccess(String token, boolean ts) {
+                    MySpUtils.save("mrsb_token",token);
+                    MySpUtils.save("mrsb_ts",ts);
+                    closeLoadingDialog();
+                    mrsb(token,ts);
+                }
 
-                                @Override
-                                public void onTrusteeshipOperationError(String error) {
-                                    LogUtils.e(error);
-                                    closeLoadingDialog();
-                                    ToastUtils.showShort(error);
-                                }
-                            });
+
+                @Override
+                public void onTrusteeshipSystemLoginError(String error) {
+                    ToastUtils.showShort(error);
+                    closeLoadingDialog();
+                }
+            });
+        }else{
+            mrsb(mrsb_token,MySpUtils.getBoolean("mrsb_ts"));
+        }
+    }
+
+    private void mrsb(String token,Boolean ts){
+        if(ts){
+            new AlertDialog.Builder(context)
+                    .setTitle("健康打卡云托管")
+                    .setMessage("您已提交托管，是否取消云托管？")
+                    .setPositiveButton("取消托管",(dialog, which) -> {
+                        openLoadingDialog("正在取消");
+                        cloudTrusteeshipModel.cancleTrusteeship(token, new CloudTrusteeshipModel.TrusteeshipOperationCallBack(){
+
+                            @Override
+                            public void onTrusteeshipOperationSuccess(String res) {
+                                closeLoadingDialog();
+                                MySpUtils.save("mrsb_ts",false);
+                                iMainView.ShowSnackbar(ContextCompat.getColor(context, iMainView.getColorPrimaryId()),res);
+                            }
+
+                            @Override
+                            public void onTrusteeshipOperationError(String error) {
+                                LogUtils.e(error);
+                                ToastUtils.showShort(error);
+                                closeLoadingDialog();
+                            }
+                        });
+                    })
+                    .setNegativeButton("取消",null)
+                    .show();
+        }else{
+            new AlertDialog.Builder(context)
+                    .setTitle("健康打卡云托管")
+                    .setMessage("目前支持打卡云托管服务，提交账户信息至服务器，每日由服务器自动上报打卡，免去您每日打卡的烦恼。\n" +
+                            "您也可以访问云托管网页系统（http://mrsb.qianxiao.fun）手动提交或查看更多详情。\n" +
+                            "是否立即提交云托管？")
+                    .setPositiveButton("立即云托管",(dialog, which) -> {
+                        if(cloudTrusteeshipModel == null){
+                            cloudTrusteeshipModel = new CloudTrusteeshipModel();
                         }
-                    });
-                })
-                .setNegativeButton("取消",null)
-                .setNeutralButton("访问云托管系统",(dialog, which) -> {
-                    Intent intent = new Intent();
-                    intent.setAction("android.intent.action.VIEW");
-                    intent.setData(Uri.parse("http://mrsb.qianxiao.fun"));
-                    context.startActivity(intent);
-                })
-                .show();
+                        EditText editText = new EditText(context);
+                        editText.setHint("请输入提醒邮箱");
+                        LinearLayout l1 = new LinearLayout(context);
+                        l1.setOrientation(LinearLayout.VERTICAL);
+                        LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+                        lp1.setMargins(0, ConvertUtils.dp2px(20),0,0);
+                        l1.setLayoutParams(lp1);
+                        l1.setPadding(ConvertUtils.dp2px(10),0,ConvertUtils.dp2px(10),0);
+                        l1.addView(editText);
+                        TextView textView = new TextView(context);
+                        textView.setText("邮箱用于接受打卡结果，建议填写常用邮箱。（如未能正常接受邮件，请设置qianxiao.fun为域名白名单）");
+                        l1.addView(textView);
+                        AlertDialog dialog1 = new AlertDialog.Builder(context)
+                                .setTitle("健康打卡云托管")
+                                .setView(l1)
+                                .setPositiveButton("确定",null)
+                                .setNegativeButton("取消",null)
+                                .setNeutralButton("使用兰大邮箱",null)
+                                .show();
+                        editText.requestFocus();
+                        dialog1.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
+                            editText.setText(user.getMailpf()+"@lzu.edu.cn");
+                            editText.requestFocus();
+                            editText.setSelection(editText.getText().length());
+                        });
+                        dialog1.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                            String email = editText.getText().toString().trim();
+                            if(TextUtils.isEmpty(email)){
+                                ToastUtils.showShort("请输入提醒邮箱");
+                                editText.requestFocus();
+                                if(!KeyboardUtils.isSoftInputVisible((Activity) context)){
+                                    KeyboardUtils.showSoftInput(editText);
+                                }
+                            }else if(!RegexUtils.isEmail(email)){
+                                ToastUtils.showShort("邮箱非法");
+                                editText.requestFocus();
+                            }else{
+                                KeyboardUtils.hideSoftInput(editText);
+                                dialog1.dismiss();
+                                openLoadingDialog("正在提交");
+                                cloudTrusteeshipModel.trusteeshipSubmit(token, email, new CloudTrusteeshipModel.TrusteeshipOperationCallBack() {
+                                    @Override
+                                    public void onTrusteeshipOperationSuccess(String res) {
+                                        closeLoadingDialog();
+                                        MySpUtils.save("mrsb_ts",true);
+                                        iMainView.ShowSnackbar(ContextCompat.getColor(context, iMainView.getColorPrimaryId()),res);
+                                    }
+
+                                    @Override
+                                    public void onTrusteeshipOperationError(String error) {
+                                        LogUtils.e(error);
+                                        closeLoadingDialog();
+                                        ToastUtils.showShort(error);
+                                    }
+                                });
+                            }
+                        });
+                    })
+                    .setNegativeButton("取消",null)
+                    .setNeutralButton("访问云托管系统",(dialog, which) -> {
+                        Intent intent = new Intent();
+                        intent.setAction("android.intent.action.VIEW");
+                        intent.setData(Uri.parse("http://mrsb.qianxiao.fun"));
+                        context.startActivity(intent);
+                    })
+                    .show();
+        }
     }
 
     @Override
@@ -705,6 +822,17 @@ public class MainViewModel extends BaseObservable implements IClickView {
                     })
                     .request();
             return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            //Android11
+            if (!Environment.isExternalStorageManager()) {
+                ToastUtils.showShort("Android11请授权文件管理权限");
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.setData(Uri.parse("package:" + context.getPackageName()));
+                context.startActivity(intent);
+                return;
+            }
         }
         /*
         1001 成绩单（中）
@@ -962,6 +1090,16 @@ public class MainViewModel extends BaseObservable implements IClickView {
                     })
                     .request();
             return;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            //Android11
+            if (!Environment.isExternalStorageManager()) {
+                ToastUtils.showShort("Android11请授权文件管理权限");
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.setData(Uri.parse("package:" + context.getPackageName()));
+                context.startActivity(intent);
+                return;
+            }
         }
         if(!MySpUtils.getBoolean("tip_oa_filecloud")){
             new AlertDialog.Builder(context)
@@ -1571,88 +1709,6 @@ public class MainViewModel extends BaseObservable implements IClickView {
                     notifyPropertyChanged(BR.user);
                     ToastUtils.showShort("设置成功，正在查询电费");
                     getDromBlance(dormno,false);
-                })
-                .setNegativeButton("取消",null)
-                .show();
-    }
-
-    /**
-     * 健康打卡云托管长按
-     * @param view
-     */
-    @SuppressLint("SetTextI18n")
-    public void healthPunchCloudTrusteeshipCancle(View view){
-        new AlertDialog.Builder(context)
-                .setTitle("健康打卡云托管")
-                .setMessage("是否取消托管？")
-                .setPositiveButton("取消托管",(dialog, which) -> {
-                    if(user == null){
-                        ToastUtils.showShort("请登录后使用");
-                        lzuloginModel.showLoginDialog();
-                        return;
-                    }
-                    String login_uid = MySpUtils.getString("login_uid");
-                    String login_pwd = MySpUtils.getString("login_pwd");
-                    if(TextUtils.isEmpty(login_uid)||TextUtils.isEmpty(login_pwd)){
-                        return;
-                    }
-                    if(cloudTrusteeshipModel == null){
-                        cloudTrusteeshipModel = new CloudTrusteeshipModel();
-                    }
-                    EditText editText = new EditText(context);
-                    editText.setHint("请输入提醒邮箱进行验证");
-                    LinearLayout l1 = new LinearLayout(context);
-                    l1.setOrientation(LinearLayout.VERTICAL);
-                    LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-                    lp1.setMargins(0, ConvertUtils.dp2px(20),0,0);
-                    l1.setLayoutParams(lp1);
-                    l1.setPadding(ConvertUtils.dp2px(10),0,ConvertUtils.dp2px(10),0);
-                    l1.addView(editText);
-                    AlertDialog dialog1 = new AlertDialog.Builder(context)
-                            .setTitle("健康打卡云托管")
-                            .setView(l1)
-                            .setPositiveButton("确定",null)
-                            .setNegativeButton("取消",null)
-                            .setNeutralButton("使用兰大邮箱",null)
-                            .show();
-                    editText.requestFocus();
-                    dialog1.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
-                        editText.setText(user.getMailpf()+"@lzu.edu.cn");
-                        editText.requestFocus();
-                        editText.setSelection(editText.getText().length());
-                    });
-                    dialog1.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-                        String email = editText.getText().toString().trim();
-                        if(TextUtils.isEmpty(email)){
-                            ToastUtils.showShort("请输入提醒邮箱");
-                            editText.requestFocus();
-                            if(!KeyboardUtils.isSoftInputVisible((Activity) context)){
-                                KeyboardUtils.showSoftInput(editText);
-                            }
-                        }else if(!RegexUtils.isEmail(email)){
-                            ToastUtils.showShort("邮箱非法");
-                            editText.requestFocus();
-                        }else{
-                            KeyboardUtils.hideSoftInput(editText);
-                            dialog1.dismiss();
-                            openLoadingDialog("正在取消");
-                            cloudTrusteeshipModel.cancleTrusteeship(login_uid,login_pwd,email, new CloudTrusteeshipModel.TrusteeshipOperationCallBack(){
-
-                                @Override
-                                public void onTrusteeshipOperationSuccess(String res) {
-                                    closeLoadingDialog();
-                                    iMainView.ShowSnackbar(ContextCompat.getColor(context, iMainView.getColorPrimaryId()),res);
-                                }
-
-                                @Override
-                                public void onTrusteeshipOperationError(String error) {
-                                    LogUtils.e(error);
-                                    ToastUtils.showShort(error);
-                                    closeLoadingDialog();
-                                }
-                            });
-                        }
-                    });
                 })
                 .setNegativeButton("取消",null)
                 .show();

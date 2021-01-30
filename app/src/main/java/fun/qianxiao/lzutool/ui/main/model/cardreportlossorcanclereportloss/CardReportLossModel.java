@@ -3,6 +3,7 @@ package fun.qianxiao.lzutool.ui.main.model.cardreportlossorcanclereportloss;
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
+import com.blankj.utilcode.util.LogUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ public class CardReportLossModel {
                 Request.Method.POST,
                 "https://ecard.lzu.edu.cn/easytong_portal/reportLoss/lossReportCard",
                 response -> {
+                    //LogUtils.i(response);
                     if(isLoss){
                         if(response.contains("已经申请挂失")){
                             callBack.onCardReportLossOperationSuccess("挂失成功");

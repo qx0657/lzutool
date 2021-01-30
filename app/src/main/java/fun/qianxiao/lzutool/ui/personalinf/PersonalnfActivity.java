@@ -15,15 +15,21 @@ import com.blankj.utilcode.util.ToastUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import fun.qianxiao.lzutool.R;
 import fun.qianxiao.lzutool.base.BaseDataBadingActivity;
 import fun.qianxiao.lzutool.base.BaseFragment;
 import fun.qianxiao.lzutool.ui.main.model.lzulogin.LzuloginModel;
+import fun.qianxiao.lzutool.ui.main.model.resetpwd.ReSetPwdModel;
 import fun.qianxiao.lzutool.ui.personalinf.fragment.FragmentAdapter;
 import fun.qianxiao.lzutool.ui.personalinf.fragment.PersonalnfFragment;
 import fun.qianxiao.lzutool.ui.personalinf.fragment.TransitcenterFragment;
+import fun.qianxiao.lzutool.utils.MyCookieUtils;
+import fun.qianxiao.lzutool.utils.MySpUtils;
 import fun.qianxiao.lzutool.view.MyLoadingDialog;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 
 /**
  * 个人网盘和文件中转站
@@ -102,6 +108,77 @@ public class PersonalnfActivity extends BaseDataBadingActivity implements IPerso
             return;
         }
         openLoadingDialog("正在登录");
+        LogUtils.i(user_mailpf,login_pwd);
+        /*lzuloginModel.loginGetTGT(user_mailpf, login_pwd, new LzuloginModel.LoginGetTGTCallBack() {
+            @Override
+            public void onLoginGetTGTSuccess(String tgt) {
+                lzuloginModel.getStByTGT(tgt, new LzuloginModel.GetStByTGTCallBack() {
+                    @Override
+                    public void onGetStByTGTSuccess(String st) {
+                        lzuloginModel.loginMyLzu(tgt, st, new Observer<String>() {
+                            @Override
+                            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                            }
+
+                            @Override
+                            public void onNext(@io.reactivex.annotations.NonNull String mylzucookie) {
+                                lzuloginModel.loginLzuMail(mylzucookie, new LzuloginModel.LoginLzuMailCallBack() {
+                                    @Override
+                                    public void onLoginLzuMailSuccess(String coolie_mail) {
+                                        LogUtils.i("邮箱登录Cookie获取成功",coolie_mail);
+                                        closeLoadingDialog();
+                                        personalnfFragment.setMail_cookie(coolie_mail);
+                                        personalnfFragment.loadData();
+                                        FragmentAdapter adapter = new FragmentAdapter(getSupportFragmentManager(), FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, fragmentlist);
+                                        vp_personalnfactivity.setAdapter(adapter);
+                                        vp_personalnfactivity.setCurrentItem(0);
+                                    }
+
+                                    @Override
+                                    public void onLoginLzuMailError(String error) {
+                                        closeLoadingDialog();
+                                        LogUtils.e(error);
+                                        ToastUtils.showShort(error);
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                                closeLoadingDialog();
+                                LogUtils.e(e.getMessage());
+                                ToastUtils.showShort(e.getMessage());
+                            }
+
+                            @Override
+                            public void onComplete() {
+
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onGetStByTGTError(String error) {
+                        closeLoadingDialog();
+                        LogUtils.e(error);
+                        ToastUtils.showShort(error);
+                    }
+                });
+            }
+
+            @Override
+            public void onLoginGetTGTError(String error) {
+                closeLoadingDialog();
+                LogUtils.e(error);
+                ToastUtils.showShort(error);
+            }
+        });
+*/
+
+
+
+
         lzuloginModel.loginLzuMail(user_mailpf, login_pwd, new LzuloginModel.LoginLzuMailCallBack() {
             @Override
             public void onLoginLzuMailSuccess(String coolie_mail) {

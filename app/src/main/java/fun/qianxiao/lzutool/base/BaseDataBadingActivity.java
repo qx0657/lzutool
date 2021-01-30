@@ -8,6 +8,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -37,7 +38,7 @@ public abstract class BaseDataBadingActivity<T extends ViewDataBinding> extends 
      * 泛型传入的ViewDataBinding
      * <T extends ViewDataBinding>
      */
-    protected T binding;
+    public T binding;
     protected boolean setDefaultToolbar = true;
     protected Toolbar toolbar;
     protected boolean isAddToolbarMarginTopEqualStatusBarHeight = false;
