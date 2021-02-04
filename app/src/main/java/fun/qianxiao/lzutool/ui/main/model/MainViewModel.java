@@ -173,6 +173,9 @@ public class MainViewModel extends BaseObservable implements IClickView {
         user = null;
         MySpUtils.remove("user");
         MySpUtils.remove("dormInfo");
+        MySpUtils.remove("cardid_md5");
+        ((MainDataBadingActivity)context).binding.layoutAppbarmain.tvHealthpunchText.setText("健康打卡");
+        ((MainDataBadingActivity)context).binding.layoutAppbarmain.tvHealthpunchText.setTextColor(Color.parseColor("#888888"));
         notifyPropertyChanged(BR.user);
     }
 
@@ -272,7 +275,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                                     @Override
                                     public void onGetDormInfoError(String error) {
                                         LogUtils.e(error);
-                                        ToastUtils.showShort("宿舍信息获取失败（"+error+")");
+                                        ToastUtils.showShort("宿舍信息获取失败（"+error+")，请刷新重试");
                                     }
                                 });
                             }
@@ -303,7 +306,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                             @Override
                             public void onGetListStuError(String error) {
                                 LogUtils.e(error);
-                                ToastUtils.showShort("onGetListStuError:"+error);
+                                ToastUtils.showShort("请销假列表获取失败（"+error+"），请刷新重试");
                             }
                         });
                     }

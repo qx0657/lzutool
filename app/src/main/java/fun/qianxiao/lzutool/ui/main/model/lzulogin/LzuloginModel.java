@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 import fun.qianxiao.lzutool.bean.User;
 import fun.qianxiao.lzutool.ui.main.model.baseinfo.GetBaseInfoModel;
 import fun.qianxiao.lzutool.utils.HttpConnectionUtil;
+import fun.qianxiao.lzutool.utils.LZUEncryptUtils;
 import fun.qianxiao.lzutool.utils.MyCookieUtils;
 import fun.qianxiao.lzutool.utils.MyOkhttpUtils;
 import fun.qianxiao.lzutool.utils.MySpUtils;
@@ -84,108 +85,148 @@ public class LzuloginModel {
     public void login(String uid,String pwd){
         LogUtils.i("正在登录："+uid);
         loginCallback.onLogining();
-        try{
-            JsonObjectRequest loginJsonObjectRequest = new JsonObjectRequest(
-                    Request.Method.POST,
-                    "https://appservice.lzu.edu.cn/api/eusp-unify-terminal/app-user/login",
-                    new JSONObject()
+        StringRequest loginJsonObjectRequest = new StringRequest(
+                Request.Method.POST,
+                "https://appservice.lzu.edu.cn/api/eusp-unify-terminal/app-user/login",
+                strresponse -> {
+                    JSONObject response = null;
+                    try {
+                        response = new JSONObject(LZUEncryptUtils.decrypt(strresponse));
+                    } catch (JSONException ignored) {
+                    }
+                    LogUtils.i(response);
+                    int code = response.optInt("code",-1);
+                    switch (code){
+                        case 1:
+                            //登录成功
+                            if(loginDialogFragment != null){
+                                loginDialogFragment.dismiss();
+                                MySpUtils.save("login_uid",uid);
+                                MySpUtils.save("login_pwd", pwd);
+                            }
+                            String login_token = Objects.requireNonNull(response.optJSONObject("data")).optString("login_token");
+                            if(TextUtils.isEmpty(login_token)){
+                                loginCallback.onLoginFail("登陆失败（002）");
+                            }else{
+                                //获取用户信息
+                                StringRequest getUserinfoJsonObjectRequest = new StringRequest(
+                                        Request.Method.GET,
+                                        "https://appservice.lzu.edu.cn/api/eusp-unify-terminal/app-user/userInfo?loginToken="+login_token,
+                                        strresponse1 -> {
+                                            JSONObject response1 = null;
+                                            try {
+                                                response1 = new JSONObject(LZUEncryptUtils.decrypt(strresponse1));
+                                            } catch (JSONException ignored) {
+                                            }
+                                            LogUtils.i(response1);
+                                        if(response1.optInt("code")==1){
+                                            JSONObject userInfo = response1.optJSONObject("data");
+                                            assert userInfo != null;
+                                            User user = new User();
+                                            user.setCardid(userInfo.optString("xykh"));
+                                            if(userInfo.isNull("dzxx")){
+                                                LogUtils.i("邮箱前缀为空");
+                                                new GetBaseInfoModel(context).getMailPf(userInfo.optString("xykh"), new Observer<String>() {
+                                                    @Override
+                                                    public void onSubscribe(@NonNull Disposable d) {
+
+                                                    }
+
+                                                    @Override
+                                                    public void onNext(@NonNull String s) {
+                                                        LogUtils.i(s);
+                                                        user.setMailpf(s);
+                                                        user.setName(userInfo.optString("xm"));
+                                                        user.setPhone(userInfo.optString("yddh"));
+                                                        user.setCollege(userInfo.optString("dwmc"));
+                                                        if(!userInfo.isNull("zymc")){
+                                                            user.setMarjor(userInfo.optString("zymc"));
+                                                        }
+                                                        user.setAccnum(userInfo.optString("etong_acc_no"));
+                                                        loginCallback.onLoginSuccess(user);
+                                                    }
+
+                                                    @Override
+                                                    public void onError(@NonNull Throwable e) {
+                                                        loginCallback.onLoginFail(e.getMessage());
+                                                    }
+
+                                                    @Override
+                                                    public void onComplete() {
+
+                                                    }
+                                                });
+                                            }else {
+                                                String mailpf = userInfo.optString("dzxx");
+                                                if(mailpf.contains("@")){
+                                                    mailpf = mailpf.substring(0,mailpf.indexOf("@"));
+                                                }
+                                                user.setMailpf(mailpf);
+                                                user.setName(userInfo.optString("xm"));
+                                                user.setPhone(userInfo.optString("yddh"));
+                                                user.setCollege(userInfo.optString("dwmc"));
+                                                if(!userInfo.isNull("zymc")){
+                                                    user.setMarjor(userInfo.optString("zymc"));
+                                                }
+                                                user.setAccnum(userInfo.optString("etong_acc_no"));
+                                                loginCallback.onLoginSuccess(user);
+                                            }
+                                        }else{
+                                            loginCallback.onLoginFail("获取用户信息失败");
+                                        }
+                                },error -> loginCallback.onLoginFail(error.getMessage())){
+
+                                    @Override
+                                    public Map<String, String> getHeaders() throws AuthFailureError {
+                                        //return super.getHeaders();
+                                        Map<String, String> headers = super.getHeaders();
+                                        if(headers == null || headers.equals(Collections.emptyMap())){
+                                            headers = new HashMap<>();
+                                        }
+                                        headers.put("Transfer-Encrypt","true");
+                                        return headers;
+                                    }
+                                };
+                                MyVolleyManager.getRequestQueue().add(getUserinfoJsonObjectRequest);
+                            }
+
+                            break;
+                        case 0:
+                            loginCallback.onLoginFail(response.optString("message"));
+                            break;
+                        case -1:
+                            loginCallback.onLoginFail("未知错误（001）");
+                            break;
+                    }
+                }, error -> loginCallback.onLoginFail(error.getMessage())){
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                String reqdata = "";
+                try {
+                    JSONObject req_parms = new JSONObject()
                             .put("app_os",2)
                             .put("name",uid)
-                            .put("pwd",pwd),
-                    response -> {
-                        LogUtils.i(response);
-                        int code = response.optInt("code",-1);
-                        switch (code){
-                            case 1:
-                                //登录成功
-                                if(loginDialogFragment != null){
-                                    loginDialogFragment.dismiss();
-                                    MySpUtils.save("login_uid",uid);
-                                    MySpUtils.save("login_pwd", pwd);
-                                }
-                                String login_token = Objects.requireNonNull(response.optJSONObject("data")).optString("login_token");
-                                if(TextUtils.isEmpty(login_token)){
-                                    loginCallback.onLoginFail("登陆失败（002）");
-                                }else{
-                                    //获取用户信息
-                                    JsonObjectRequest getUserinfoJsonObjectRequest = new JsonObjectRequest(
-                                            Request.Method.GET,
-                                            "https://appservice.lzu.edu.cn/api/eusp-unify-terminal/app-user/userInfo?loginToken="+login_token,
-                                            null,response1 -> {
-                                                LogUtils.i(response1);
-                                            if(response1.optInt("code")==1){
-                                                JSONObject userInfo = response1.optJSONObject("data");
-                                                assert userInfo != null;
-                                                User user = new User();
-                                                user.setCardid(userInfo.optString("xykh"));
-                                                if(userInfo.isNull("dzxx")){
-                                                    LogUtils.i("邮箱前缀为空");
-                                                    new GetBaseInfoModel(context).getMailPf(userInfo.optString("xykh"), new Observer<String>() {
-                                                        @Override
-                                                        public void onSubscribe(@NonNull Disposable d) {
+                            .put("pwd",pwd);
+                    reqdata = LZUEncryptUtils.encrypt(req_parms.toString());
+                } catch (JSONException ignored) {
+                }
+                LogUtils.i(reqdata);
+                return reqdata.getBytes();
+            }
 
-                                                        }
-
-                                                        @Override
-                                                        public void onNext(@NonNull String s) {
-                                                            LogUtils.i(s);
-                                                            user.setMailpf(s);
-                                                            user.setName(userInfo.optString("xm"));
-                                                            user.setPhone(userInfo.optString("yddh"));
-                                                            user.setCollege(userInfo.optString("dwmc"));
-                                                            if(!userInfo.isNull("zymc")){
-                                                                user.setMarjor(userInfo.optString("zymc"));
-                                                            }
-                                                            user.setAccnum(userInfo.optString("etong_acc_no"));
-                                                            loginCallback.onLoginSuccess(user);
-                                                        }
-
-                                                        @Override
-                                                        public void onError(@NonNull Throwable e) {
-                                                            loginCallback.onLoginFail(e.getMessage());
-                                                        }
-
-                                                        @Override
-                                                        public void onComplete() {
-
-                                                        }
-                                                    });
-                                                }else {
-                                                    String mailpf = userInfo.optString("dzxx");
-                                                    if(mailpf.contains("@")){
-                                                        mailpf = mailpf.substring(0,mailpf.indexOf("@"));
-                                                    }
-                                                    user.setMailpf(mailpf);
-                                                    user.setName(userInfo.optString("xm"));
-                                                    user.setPhone(userInfo.optString("yddh"));
-                                                    user.setCollege(userInfo.optString("dwmc"));
-                                                    if(!userInfo.isNull("zymc")){
-                                                        user.setMarjor(userInfo.optString("zymc"));
-                                                    }
-                                                    user.setAccnum(userInfo.optString("etong_acc_no"));
-                                                    loginCallback.onLoginSuccess(user);
-                                                }
-                                            }else{
-                                                loginCallback.onLoginFail("获取用户信息失败");
-                                            }
-                                    },error -> loginCallback.onLoginFail(error.getMessage()));
-                                    MyVolleyManager.getRequestQueue().add(getUserinfoJsonObjectRequest);
-                                }
-
-                                break;
-                            case 0:
-                                loginCallback.onLoginFail(response.optString("message"));
-                                break;
-                            case -1:
-                                loginCallback.onLoginFail("未知错误（001）");
-                                break;
-                        }
-                    }, error -> loginCallback.onLoginFail(error.getMessage()));
-            MyVolleyManager.getRequestQueue().add(loginJsonObjectRequest);
-        } catch (JSONException e) {
-            LogUtils.e(e.toString());
-            loginCallback.onLoginFail(e.getMessage());
-        }
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                //return super.getHeaders();
+                Map<String, String> headers = super.getHeaders();
+                if(headers == null || headers.equals(Collections.emptyMap())){
+                    headers = new HashMap<>();
+                }
+                headers.put("Content-Type","application/json;charset=UTF-8");
+                headers.put("Transfer-Encrypt","true");
+                return headers;
+            }
+        };
+        MyVolleyManager.getRequestQueue().add(loginJsonObjectRequest);
 
     }
 
