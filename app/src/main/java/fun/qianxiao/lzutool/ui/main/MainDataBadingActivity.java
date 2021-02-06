@@ -38,6 +38,8 @@ import fun.qianxiao.lzutool.ui.about.AboutActivity;
 import fun.qianxiao.lzutool.ui.addlabel.AddLabelActivity;
 import fun.qianxiao.lzutool.ui.addlabel.AddLabelViewModel;
 import fun.qianxiao.lzutool.ui.main.model.MainViewModel;
+import fun.qianxiao.lzutool.ui.main.sub.CancleCardReportLossActivity;
+import fun.qianxiao.lzutool.ui.main.sub.CardReportLossActivity;
 import fun.qianxiao.lzutool.ui.main.sub.HealthPunchActivity;
 import fun.qianxiao.lzutool.ui.main.sub.LzuLibReserveActivity;
 import fun.qianxiao.lzutool.ui.setting.SettingActivity;
@@ -190,6 +192,60 @@ public class MainDataBadingActivity
                                 HealthPunchActivity.class.getName());
 
                         ToastUtils.showShort(String.format(AddLabelViewModel.TIP_TEXT, "健康打卡"));
+                    })
+                    .setNegativeButton("取消",null)
+                    .show();
+            return true;
+        });
+        binding.layoutAppbarmain.llCardloss.setOnLongClickListener(v -> {
+            if(binding.getMainViewModel().user==null){
+                return true;
+            }
+            if(TextUtils.isEmpty(binding.getMainViewModel().user.getCardid())){
+                return true;
+            }
+            new AlertDialog.Builder(context)
+                    .setTitle("添加桌面快捷方式")
+                    .setMessage("是否添加“校园卡挂失”功能为桌面快捷方式？使用将更方便。")
+                    .setPositiveButton("确定",(dialog, which) -> {
+                        User user = MySpUtils.getObjectData("user");
+                        if(user==null){
+                            ToastUtils.showShort("请登录后使用");
+                            return;
+                        }
+                        MySpUtils.SaveObjectData("user",binding.getMainViewModel().user);
+                        MyLabelUtils.addShortcut(MainDataBadingActivity.this,
+                                "校园卡挂失",
+                                CardReportLossActivity.class.getName());
+
+                        ToastUtils.showShort(String.format(AddLabelViewModel.TIP_TEXT, "图书馆预约"));
+                    })
+                    .setNegativeButton("取消",null)
+                    .show();
+            return true;
+        });
+        binding.layoutAppbarmain.llCardrecoverloss.setOnLongClickListener(v -> {
+            if(binding.getMainViewModel().user==null){
+                return true;
+            }
+            if(TextUtils.isEmpty(binding.getMainViewModel().user.getCardid())){
+                return true;
+            }
+            new AlertDialog.Builder(context)
+                    .setTitle("添加桌面快捷方式")
+                    .setMessage("是否添加“校园卡解挂”功能为桌面快捷方式？使用将更方便。")
+                    .setPositiveButton("确定",(dialog, which) -> {
+                        User user = MySpUtils.getObjectData("user");
+                        if(user==null){
+                            ToastUtils.showShort("请登录后使用");
+                            return;
+                        }
+                        MySpUtils.SaveObjectData("user",binding.getMainViewModel().user);
+                        MyLabelUtils.addShortcut(MainDataBadingActivity.this,
+                                "校园卡解挂",
+                                CancleCardReportLossActivity.class.getName());
+
+                        ToastUtils.showShort(String.format(AddLabelViewModel.TIP_TEXT, "图书馆预约"));
                     })
                     .setNegativeButton("取消",null)
                     .show();

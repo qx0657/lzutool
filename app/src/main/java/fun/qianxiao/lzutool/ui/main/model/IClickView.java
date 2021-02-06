@@ -71,4 +71,14 @@ public interface IClickView extends ILoadingView {
     void reSetPwd();
 
     void setDormInfo();
+
+    /**
+     * LZU邮箱
+     */
+    void lzuMail();
+
+    /**
+     * 信息查询
+     */
+    void queryInfoByCardid();
 }

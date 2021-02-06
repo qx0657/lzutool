@@ -37,6 +37,8 @@ import fun.qianxiao.lzutool.utils.SignUtils;
 import fun.qianxiao.lzutool.utils.Xml2JsonUtils;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
 
 /**
  * 基础信息获取
@@ -51,7 +53,7 @@ public class GetBaseInfoModel {
         this.context = context;
     }
 
-    public void getMailPf(String cardid, Observer<String> observer){
+    public void getInfoByCardid(String cardid, Observer<JSONObject> observer){
         StringRequest stringRequest = new StringRequest(
                 Request.Method.POST,
                 "https://appservice.lzu.edu.cn/easytong_app/easytong-app/easytong_app/GetAccInfoByPercode",
@@ -61,8 +63,8 @@ public class GetBaseInfoModel {
                     //LogUtils.i(jsonObject);
                     assert jsonObject != null;
                     if(jsonObject.optString("Code").equals("1")){
-                        String emailpf = jsonObject.optString("Email");
-                        observer.onNext(emailpf);
+                        observer.onComplete();
+                        observer.onNext(jsonObject);
                     }else{
                         observer.onError(new Throwable(jsonObject.optString("Msg")));
                     }
@@ -77,6 +79,31 @@ public class GetBaseInfoModel {
             }
         };
         MyVolleyManager.getRequestQueue().add(stringRequest);
+    }
+
+    public void getMailPf(String cardid, Observer<String> observer){
+        getInfoByCardid(cardid, new Observer<JSONObject>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
+                observer.onSubscribe(d);
+            }
+
+            @Override
+            public void onNext(@NonNull JSONObject jsonObject) {
+                String emailpf = jsonObject.optString("Email");
+                observer.onNext(emailpf);
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+                observer.onError(e);
+            }
+
+            @Override
+            public void onComplete() {
+                observer.onComplete();
+            }
+        });
     }
 
     public interface GetWalletMoneyModelCallBack{

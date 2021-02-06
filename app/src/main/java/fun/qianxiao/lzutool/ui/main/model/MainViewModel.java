@@ -15,13 +15,11 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,7 +28,6 @@ import androidx.core.content.ContextCompat;
 import androidx.databinding.BaseObservable;
 import androidx.databinding.Bindable;
 import androidx.fragment.app.FragmentActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.blankj.utilcode.constant.PermissionConstants;
 import com.blankj.utilcode.util.AppUtils;
@@ -40,6 +37,7 @@ import com.blankj.utilcode.util.KeyboardUtils;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.PermissionUtils;
 import com.blankj.utilcode.util.RegexUtils;
+import com.blankj.utilcode.util.StringUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.blankj.utilcode.util.UriUtils;
 import com.blankj.utilcode.util.Utils;
@@ -50,10 +48,10 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import fun.qianxiao.lzutool.BR;
 import fun.qianxiao.lzutool.R;
@@ -1715,6 +1713,102 @@ public class MainViewModel extends BaseObservable implements IClickView {
                 })
                 .setNegativeButton("取消",null)
                 .show();
+    }
+
+    @Override
+    public void lzuMail() {
+        iMainView.ShowSnackbar("敬请期待");
+    }
+
+    @Override
+    public void queryInfoByCardid() {
+        if(!MySpUtils.getBoolean("queryInfoByCardidTip")){
+            new AlertDialog.Builder(context)
+                    .setTitle("使用协议")
+                    .setMessage("该功能通过校园卡号获取姓名、邮箱等信息。获取的信息请勿非法使用，否因造成的一切后果由使用者自行承担，作者不承担任何责任。")
+                    .setPositiveButton("同意",(dialog, which) -> {
+                        MySpUtils.save("queryInfoByCardidTip",true);
+                        queryInfoByCardid();
+                    })
+                    .setNegativeButton("取消",null)
+                    .show();
+            return;
+        }
+        LinearLayout linearLayout = new LinearLayout(context);
+        linearLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
+        linearLayout.setPadding(ConvertUtils.dp2px(20),ConvertUtils.dp2px(15),ConvertUtils.dp2px(20),0);
+        EditText editText = new EditText(context);
+        editText.setHint("请输入要查询的校园卡号");
+        linearLayout.addView(editText,-1,-2);
+        new AlertDialog.Builder(context)
+                .setTitle("请输入要查询的校园卡号")
+                .setView(linearLayout)
+                .setPositiveButton("查询",null)
+                .setNegativeButton("取消",null)
+                .show().getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String cardid = editText.getText().toString();
+            if(TextUtils.isEmpty(cardid)){
+                ToastUtils.showShort("请输入要查询的校园卡号");
+                return;
+            }
+            if(StringUtils.length(cardid)!=12){
+                ToastUtils.showShort("请输入正确的校园卡号");
+                return;
+            }
+            KeyboardUtils.hideSoftInput(editText);
+            openLoadingDialog("正在查询");
+            getBaseInfoModel.getInfoByCardid(cardid, new Observer<JSONObject>() {
+                @Override
+                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                }
+
+                @Override
+                public void onNext(@io.reactivex.annotations.NonNull JSONObject jsonObject) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    stringBuilder.append("姓名：");
+                    stringBuilder.append(jsonObject.optString("AccName"));
+                    stringBuilder.append("\n邮箱：");
+                    stringBuilder.append(jsonObject.optString("Email"));
+                    stringBuilder.append("@lzu.edu.cn");
+                    AtomicInteger i = new AtomicInteger();
+                    AlertDialog alertDialog = new AlertDialog.Builder(context)
+                            .setTitle("查询成功")
+                            .setMessage(stringBuilder.toString())
+                            .setPositiveButton("确定",null)
+                            .show();
+                    alertDialog.findViewById(androidx.appcompat.R.id.alertTitle).setOnClickListener(v -> {
+                        i.getAndIncrement();
+                        if(i.get() >= 5){
+                            Iterator<String> iterator = jsonObject.keys();
+                            StringBuilder sb = new StringBuilder();
+                            while(iterator.hasNext()){
+                                String s = iterator.next();
+                                sb.append(s);
+                                sb.append("：");
+                                sb.append(jsonObject.opt(s));
+                                sb.append("\n");
+                            }
+                            sb.deleteCharAt(sb.length()-1);
+                            alertDialog.setMessage(sb.toString());
+                            ToastUtils.showShort("请勿泄露敏感信息");
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                    onComplete();
+                    ToastUtils.showShort(e.getMessage());
+                }
+
+                @Override
+                public void onComplete() {
+                    closeLoadingDialog();
+                }
+            });
+        });
+        editText.requestFocus();
     }
 
     @Override
