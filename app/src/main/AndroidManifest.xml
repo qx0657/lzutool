@@ -85,6 +85,8 @@
         <activity
             android:name=".ui.personalinf.PersonalnfActivity"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".ui.mail.LzuMailActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
 
     </application>
 

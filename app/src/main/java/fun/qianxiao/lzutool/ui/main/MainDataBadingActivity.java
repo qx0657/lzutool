@@ -218,7 +218,7 @@ public class MainDataBadingActivity
                                 "校园卡挂失",
                                 CardReportLossActivity.class.getName());
 
-                        ToastUtils.showShort(String.format(AddLabelViewModel.TIP_TEXT, "图书馆预约"));
+                        ToastUtils.showShort(String.format(AddLabelViewModel.TIP_TEXT, "校园卡挂失"));
                     })
                     .setNegativeButton("取消",null)
                     .show();
@@ -245,7 +245,7 @@ public class MainDataBadingActivity
                                 "校园卡解挂",
                                 CancleCardReportLossActivity.class.getName());
 
-                        ToastUtils.showShort(String.format(AddLabelViewModel.TIP_TEXT, "图书馆预约"));
+                        ToastUtils.showShort(String.format(AddLabelViewModel.TIP_TEXT, "校园卡解挂"));
                     })
                     .setNegativeButton("取消",null)
                     .show();

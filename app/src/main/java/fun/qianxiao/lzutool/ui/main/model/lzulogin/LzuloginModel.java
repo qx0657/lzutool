@@ -17,6 +17,7 @@ import com.blankj.utilcode.util.ConvertUtils;
 import com.blankj.utilcode.util.EncryptUtils;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.MapUtils;
+import com.blankj.utilcode.util.ToastUtils;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -313,51 +314,27 @@ public class LzuloginModel {
      * @param tgt
      */
     public void loginZhxgGetJsessionidAndRoute(String tgt,boolean isYjs,LoginZhxgGetJsessionidAndRouteCallBack callBack){
-        /*StringRequest loginZhxgGetJsessionidAndRouteJsonObjectRequest = new StringRequest(
-                Request.Method.GET,
-                "http://zhxg.lzu.edu.cn/lzuyz/sys/sysuser/loginPortal",
-                response -> {
-                }, error -> callBack.onLoginZhxgGetJsessionidAndRouteError(error.toString())){
-
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                //return super.getHeaders();
-                Map<String, String> headers = super.getHeaders();
-                if(headers == null || headers.equals(Collections.emptyMap())){
-                    headers = new HashMap<>();
+        int retryTImes = 1;
+        while (true){
+            //volley不能禁止302，改用HttpURLConnection携带tgt的cookie302请求获取响应cookie(Jsessionid、Route)
+            String cookies = HttpConnectionUtil.getHttp().request302getResponseCookie(
+                    isYjs?"http://yjsxg.lzu.edu.cn/lzuygb/sys/sysuser/loginPortal":
+                            "http://zhxg.lzu.edu.cn/lzuyz/sys/sysuser/loginPortal",
+                    "iPlanetDirectoryPro="+tgt);
+            if(!TextUtils.isEmpty(cookies)){
+                callBack.onLoginZhxgGetJsessionidAndRouteSuccess(cookies);
+                break;
+            }else{
+                retryTImes ++;
+                if(retryTImes <= 3){
+                    ToastUtils.showShort("智慧"+(isYjs?"研":"学")+"工登录(尝试:"+retryTImes+")");
+                }else{
+                    callBack.onLoginZhxgGetJsessionidAndRouteError("智慧"+(isYjs?"研":"学")+"工登录失败");
+                    break;
                 }
-                headers.put("Cookie","iPlanetDirectoryPro="+tgt);
-                return headers;
             }
-
-            @Override
-            protected Response<String> parseNetworkResponse(NetworkResponse response) {
-                List<Header> headers = response.allHeaders;
-                StringBuilder sb = new StringBuilder();
-                for (Header header : headers) {
-                    if(header.getName().equals("Set-Cookie")){
-                        //LogUtils.i(header.getName()+":"+header.getValue());
-                        String setcookie = header.getValue();
-                        setcookie = setcookie.substring(0, !setcookie.contains(" Path=") ?0:setcookie.indexOf(" Path="));
-                        sb.append(setcookie);
-                    }
-                }
-                LogUtils.i(sb.toString());
-                return super.parseNetworkResponse(response);
-
-            }
-        };
-        MyVolleyManager.getRequestQueue().add(loginZhxgGetJsessionidAndRouteJsonObjectRequest);*/
-        //volley不能禁止302，改用HttpURLConnection携带tgt的cookie302请求获取响应cookie(Jsessionid、Route)
-        String cookies = HttpConnectionUtil.getHttp().request302getResponseCookie(
-                isYjs?"http://yjsxg.lzu.edu.cn/lzuygb/sys/sysuser/loginPortal":
-                        "http://zhxg.lzu.edu.cn/lzuyz/sys/sysuser/loginPortal",
-                "iPlanetDirectoryPro="+tgt);
-        if(!TextUtils.isEmpty(cookies)){
-            callBack.onLoginZhxgGetJsessionidAndRouteSuccess(cookies);
-        }else{
-            callBack.onLoginZhxgGetJsessionidAndRouteError("智慧学工登录失败");
         }
+
     }
 
     public interface LoginEcardGetSidCallBack{
@@ -371,15 +348,25 @@ public class LzuloginModel {
      * @param callBack
      */
     public void loginEcardGetSid(String tgt,LoginEcardGetSidCallBack callBack){
-        String cookies = HttpConnectionUtil.getHttp().request302getResponseCookie(
-                "https://ecard.lzu.edu.cn/lzulogin",
-                "iPlanetDirectoryPro="+tgt);
-        if(!TextUtils.isEmpty(cookies)){
-            Map<String,String> ecardcookie = MyCookieUtils.cookieStr2map(cookies);
-            ecardcookie.put("iPlanetDirectoryPro",tgt);
-            callBack.onLoginEcardGetSidSuccess(ecardcookie);
-        }else{
-            callBack.onLoginEcardGetSidError("智慧一卡通登录失败");
+        int retryTImes = 1;
+        while (true){
+            String cookies = HttpConnectionUtil.getHttp().request302getResponseCookie(
+                    "https://ecard.lzu.edu.cn/lzulogin",
+                    "iPlanetDirectoryPro="+tgt);
+            if(!TextUtils.isEmpty(cookies)){
+                Map<String,String> ecardcookie = MyCookieUtils.cookieStr2map(cookies);
+                ecardcookie.put("iPlanetDirectoryPro",tgt);
+                callBack.onLoginEcardGetSidSuccess(ecardcookie);
+                break;
+            }else{
+                retryTImes ++;
+                if(retryTImes <= 3){
+                    ToastUtils.showShort("智慧一卡通登录(尝试:"+retryTImes+")");
+                }else{
+                    callBack.onLoginEcardGetSidError("智慧一卡通登录失败");
+                    break;
+                }
+            }
         }
     }
 
@@ -394,13 +381,23 @@ public class LzuloginModel {
      * @param callBack
      */
     public void loginOA(String tgt,LoginOACallBack callBack){
-        String cookies = HttpConnectionUtil.getHttp().request302getResponseCookie(
-                "http://oa.lzu.edu.cn/jsoa/LDCheckUser.do",
-                "iPlanetDirectoryPro="+tgt);
-        if(!TextUtils.isEmpty(cookies)){
-            callBack.onLoginOASuccess(cookies);
-        }else{
-            callBack.onLoginOAErrot("智慧一卡通登录失败");
+        int retryTImes = 1;
+        while (true){
+            String cookies = HttpConnectionUtil.getHttp().request302getResponseCookie(
+                    "http://oa.lzu.edu.cn/jsoa/LDCheckUser.do",
+                    "iPlanetDirectoryPro="+tgt);
+            if(!TextUtils.isEmpty(cookies)){
+                callBack.onLoginOASuccess(cookies);
+                break;
+            }else{
+                retryTImes ++;
+                if(retryTImes <= 3){
+                    ToastUtils.showShort("OA登录(尝试:"+retryTImes+")");
+                }else{
+                    callBack.onLoginOAErrot("OA登录失败");
+                    break;
+                }
+            }
         }
     }
 
@@ -457,6 +454,7 @@ public class LzuloginModel {
         void onLoginLzuMailError(String error);
     }
 
+    //测试 未完成
     public void loginLzuMail(String mylzucookie, LoginLzuMailCallBack callBack){
         StringRequest stringRequest = new StringRequest(
                 Request.Method.POST,
@@ -482,6 +480,8 @@ public class LzuloginModel {
 
     /**
      * 登录兰大邮箱
+     * @param login_pid 邮箱前缀
+     * @param login_pwd
      * @param callBack
      */
     public void loginLzuMail(String login_pid,String login_pwd,LoginLzuMailCallBack callBack){
@@ -496,7 +496,7 @@ public class LzuloginModel {
                 Request.Method.POST,
                 "https://mail.lzu.edu.cn/coremail/index.jsp?cus=1&sid=",
                 response1 -> {
-                    LogUtils.i(response1);
+                    //LogUtils.i(response1);
                     Matcher m = r.matcher(response1);
                     if(m.find()){
                         String newsid = m.group(1);

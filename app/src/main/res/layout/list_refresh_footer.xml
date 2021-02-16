@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:id="@+id/list_fotter_ll_below"
-                android:layout_width="match_parent"
-                android:layout_height="45dp"
->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
 
-    <LinearLayout
+    </data>
+    <RelativeLayout
+        android:id="@+id/list_fotter_ll_below"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        >
+
+        <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="45dp"
             android:gravity="center"
             android:orientation="horizontal">
 
-        <TextView
+            <TextView
                 android:id="@+id/list_fotter_tv_line1"
                 android:layout_width="60dp"
                 android:layout_height="1dp"
@@ -19,25 +24,26 @@
                 android:background="#969696"
                 android:visibility="gone"/>
 
-        <ProgressBar
+            <ProgressBar
                 android:id="@+id/list_fotter_progressbar"
                 android:layout_width="25dp"
                 android:layout_height="25dp"
                 android:visibility="visible"/>
 
-        <TextView
+            <TextView
                 android:id="@+id/list_fotter_tv_tip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="4dp"
                 android:text="上拉加载更多"/>
 
-        <TextView
+            <TextView
                 android:id="@+id/list_footer_tv_line2"
                 android:layout_width="60dp"
                 android:layout_height="1dp"
                 android:layout_marginLeft="10dp"
                 android:background="#969696"
                 android:visibility="gone"/>
-    </LinearLayout>
-</RelativeLayout>
+        </LinearLayout>
+    </RelativeLayout>
+</layout>

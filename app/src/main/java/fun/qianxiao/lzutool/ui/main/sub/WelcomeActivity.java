@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 
 import fun.qianxiao.lzutool.R;
 import fun.qianxiao.lzutool.base.BaseDataBadingActivity;
+import fun.qianxiao.lzutool.base.BaseFragmentActivity;
 import fun.qianxiao.lzutool.view.ILoadingView;
 import fun.qianxiao.lzutool.view.MyLoadingDialog;
 
@@ -17,37 +18,12 @@ import fun.qianxiao.lzutool.view.MyLoadingDialog;
  * On 2020/10/2
  */
 @SuppressLint("Registered")
-public abstract class WelcomeActivity extends BaseDataBadingActivity implements ILoadingView {
+public abstract class WelcomeActivity extends BaseFragmentActivity implements ILoadingView {
     private MyLoadingDialog loadingDialog;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        useDatabinding = false;
-        isAddToolbarMarginTopEqualStatusBarHeight = true;
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
-    protected int getLayoutID() {
-        return R.layout.layout_fragment;
-    }
-
-    @Override
-    protected void initViewModel() {
-
-    }
-
-    @Override
-    protected void initView() {
-        Fragment fragment = new WelecomeFragment();
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.framelayout_lf,fragment)
-                .commit();
-    }
-
-    @Override
-    protected void initListener() {
-
+    protected Fragment getFragment() {
+        return new WelecomeFragment();
     }
 
     @Override

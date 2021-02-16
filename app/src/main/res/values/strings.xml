@@ -10,6 +10,9 @@
     <string name="break1">-</string>
     <string name="break2"> </string>
 
+    <string name="normal">normal</string>
+    <string name="bold">bold</string>
+
     <string name="welcome">欢迎使用LZU小工具</string>
     <string name="welcome2">一切只为简单</string>
 

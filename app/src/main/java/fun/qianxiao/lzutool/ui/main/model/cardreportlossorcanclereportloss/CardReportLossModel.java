@@ -2,8 +2,10 @@ package fun.qianxiao.lzutool.ui.main.model.cardreportlossorcanclereportloss;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
+import com.android.volley.TimeoutError;
 import com.android.volley.toolbox.StringRequest;
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.ToastUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,7 +57,13 @@ public class CardReportLossModel {
                             callBack.onCardReportLossOperationError("解挂失败");
                         }
                     }
-                },error -> callBack.onCardReportLossOperationError(error.getMessage())){
+                },error -> {
+                    if(error instanceof TimeoutError){
+                        callBack.onCardReportLossOperationError("请求超时，请稍后重试");
+                    }else{
+                        callBack.onCardReportLossOperationError(error.toString());
+                    }
+        }){
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 //return super.getHeaders();

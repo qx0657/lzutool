@@ -18,7 +18,7 @@ import fun.qianxiao.lzutool.R;
  * Create by QianXiao
  * On 2020/10/2
  */
-public class LabelBindAdapter<D extends ViewDataBinding> extends RecyclerView.Adapter<LabelViewHolder<D>> {
+public class LabelBindAdapter<D extends ViewDataBinding> extends RecyclerView.Adapter<DataBindingRecyclerHolder<D>> {
     private List<LabelData> mDatas;
     //用于设置Item的事件Presenter
     private IBindingClick iBindingClick;
@@ -34,9 +34,9 @@ public class LabelBindAdapter<D extends ViewDataBinding> extends RecyclerView.Ad
 
     @NonNull
     @Override
-    public LabelViewHolder<D> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public DataBindingRecyclerHolder<D> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        return new LabelViewHolder<>(DataBindingUtil.inflate(inflater, R.layout.item_label_layout, parent, false));
+        return new DataBindingRecyclerHolder<>(DataBindingUtil.inflate(inflater, R.layout.item_label_layout, parent, false));
     }
 
     @Override
@@ -45,7 +45,7 @@ public class LabelBindAdapter<D extends ViewDataBinding> extends RecyclerView.Ad
     }
 
     @Override
-    public void onBindViewHolder(@NonNull LabelViewHolder<D> holder, int position) {
+    public void onBindViewHolder(@NonNull DataBindingRecyclerHolder<D> holder, int position) {
         holder.binding.setVariable(BR.labelData,mDatas.get(position));
         holder.binding.setVariable(BR.addLabelViewModel,iBindingClick);
         holder.binding.executePendingBindings();

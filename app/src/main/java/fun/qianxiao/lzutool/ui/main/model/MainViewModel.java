@@ -6,15 +6,18 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.Settings;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
@@ -51,6 +54,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import fun.qianxiao.lzutool.BR;
@@ -59,6 +64,7 @@ import fun.qianxiao.lzutool.bean.CardInfo;
 import fun.qianxiao.lzutool.bean.DormInfo;
 import fun.qianxiao.lzutool.bean.SchoolNetInfo;
 import fun.qianxiao.lzutool.bean.User;
+import fun.qianxiao.lzutool.ui.mail.LzuMailActivity;
 import fun.qianxiao.lzutool.ui.main.model.baseinfo.GetBaseInfoModel;
 import fun.qianxiao.lzutool.ui.main.model.cardreportlossorcanclereportloss.CardReportLossModel;
 import fun.qianxiao.lzutool.ui.main.model.ecardservices.EcardServicesModel;
@@ -249,7 +255,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
             @Override
             public void onLoginGetTGTSuccess(String tgt) {
                 LogUtils.i(tgt);
-                //登录智慧学工/研工
+                //登录智慧学工/研工--->获取宿舍信息/电费--->获取请假状态
                 lzuloginModel.loginZhxgGetJsessionidAndRoute(tgt,isYjs, new LzuloginModel.LoginZhxgGetJsessionidAndRouteCallBack() {
                     @Override
                     public void onLoginZhxgGetJsessionidAndRouteSuccess(String zhxgcookies) {
@@ -311,7 +317,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                     @Override
                     public void onLoginZhxgGetJsessionidAndRouteError(String error) {
                         LogUtils.e(error);
-                        ToastUtils.showShort("onLoginZhxgGetJsessionidAndRouteError("+error+")");
+                        ToastUtils.showShort(error);
                     }
                 });
 
@@ -346,7 +352,6 @@ public class MainViewModel extends BaseObservable implements IClickView {
                         ToastUtils.showShort("健康打卡状态获取失败");
                     }
                 });
-
             }
 
             @Override
@@ -1017,7 +1022,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                                                 ToastUtils.showShort(error);
                                                 closeLoadingDialog();
                                             }
-                                        }
+                                        },new int[]{1}
                                 );
 
                             }
@@ -1025,7 +1030,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                             @Override
                             public void onGetCardAccNumError(String error) {
                                 LogUtils.e(error);
-                                ToastUtils.showShort(error);
+                                ToastUtils.showShort("onGetCardAccNumError("+error+")");
                                 closeLoadingDialog();
                             }
                         });
@@ -1294,14 +1299,16 @@ public class MainViewModel extends BaseObservable implements IClickView {
 
                                 @Override
                                 public void onLoginEcardGetSidError(String error) {
-
+                                    closeLoadingDialog();
+                                    ToastUtils.showShort(error);
                                 }
                             });
                         }
 
                         @Override
                         public void onLoginGetTGTError(String error) {
-
+                            closeLoadingDialog();
+                            ToastUtils.showShort(error);
                         }
                     });
                 })
@@ -1479,7 +1486,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                             })
                             .setNegativeButton("取消",null)
                             .show();
-                    editText.requestFocus();
+                    delayOpenKeyBoard(editText);
                 })
                 .setNegativeButton("取消",null)
                 .show();
@@ -1717,7 +1724,18 @@ public class MainViewModel extends BaseObservable implements IClickView {
 
     @Override
     public void lzuMail() {
-        iMainView.ShowSnackbar("敬请期待");
+        if(!MySpUtils.getBoolean("lzuMailTip1")){
+            new AlertDialog.Builder(context)
+                    .setTitle("温馨提示")
+                    .setMessage("新增LZU邮箱功能初步完成，目前仅支持邮件查看，更多功能敬请期待，如遇Bug或有任何建议，欢迎加入交流群交流。")
+                    .setPositiveButton("我知道了",(dialog, which) -> {
+                        MySpUtils.save("lzuMailTip1",true);
+                        context.startActivity(new Intent(context, LzuMailActivity.class));
+                    })
+            .show();
+        }else{
+            context.startActivity(new Intent(context, LzuMailActivity.class));
+        }
     }
 
     @Override
@@ -1739,6 +1757,8 @@ public class MainViewModel extends BaseObservable implements IClickView {
         linearLayout.setPadding(ConvertUtils.dp2px(20),ConvertUtils.dp2px(15),ConvertUtils.dp2px(20),0);
         EditText editText = new EditText(context);
         editText.setHint("请输入要查询的校园卡号");
+        editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+        editText.setSingleLine();
         linearLayout.addView(editText,-1,-2);
         new AlertDialog.Builder(context)
                 .setTitle("请输入要查询的校园卡号")
@@ -1808,7 +1828,19 @@ public class MainViewModel extends BaseObservable implements IClickView {
                 }
             });
         });
+        delayOpenKeyBoard(editText);
+    }
+
+    private void delayOpenKeyBoard(EditText editText){
         editText.requestFocus();
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                InputMethodManager inputManager =
+                        (InputMethodManager) editText.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputManager.showSoftInput(editText, 0);
+            }
+        },200);
     }
 
     @Override

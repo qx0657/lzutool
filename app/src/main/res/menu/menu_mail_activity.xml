@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_refresh"
+        android:title="刷新"
+        app:showAsAction="never" />
+    <item
+        android:title="过滤">
+        <menu>
+            <item
+                android:id="@+id/mail_menu_fitter_noread"
+                android:title="未读"/>
+            <item
+                android:id="@+id/mail_menu_fitter_agent"
+                android:title="待办"/>
+            <item
+                android:id="@+id/mail_menu_fitter_flag"
+                android:title="红旗"/>
+            <item
+                android:id="@+id/mail_menu_fitter_reply"
+                android:title="已回复"/>
+        </menu>
+    </item>
+    <item
+        android:title="排序">
+        <menu>
+            <item
+                android:id="@+id/mail_menu_sort_time"
+                android:title="按收件时间" >
+                <menu>
+                    <item
+                        android:id="@+id/menu_sort_asc"
+                        android:title="升序"/>
+                    <item
+                        android:id="@+id/menu_sort_desc"
+                        android:title="降序"/>
+                </menu>
+            </item>
+            <item
+                android:id="@+id/mail_menu_sort_from"
+                android:title="按发件人" >
+                <menu>
+                    <item
+                        android:id="@+id/menu_sort_asc"
+                        android:title="升序"/>
+                    <item
+                        android:id="@+id/menu_sort_desc"
+                        android:title="降序"/>
+                </menu>
+            </item>
+            <item
+                android:id="@+id/mail_menu_sort_subject"
+                android:title="按主题" >
+                <menu>
+                    <item
+                        android:id="@+id/menu_sort_asc"
+                        android:title="升序"/>
+                    <item
+                        android:id="@+id/menu_sort_desc"
+                        android:title="降序"/>
+                </menu>
+            </item>
+            <item
+                android:id="@+id/mail_menu_sort_attachedsize"
+                android:title="按附件大小" >
+                <menu>
+                    <item
+                        android:id="@+id/menu_sort_asc"
+                        android:title="升序"/>
+                    <item
+                        android:id="@+id/menu_sort_desc"
+                        android:title="降序"/>
+                </menu>
+            </item>
+        </menu>
+    </item>
+</menu>

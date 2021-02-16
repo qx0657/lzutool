@@ -2,6 +2,8 @@ package fun.qianxiao.lzutool;
 
 import org.junit.Test;
 
+import fun.qianxiao.lzutool.utils.MyTimeUtils;
+
 import static org.junit.Assert.*;
 
 /**
