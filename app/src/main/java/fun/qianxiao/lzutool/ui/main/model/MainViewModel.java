@@ -1022,7 +1022,7 @@ public class MainViewModel extends BaseObservable implements IClickView {
                                                 ToastUtils.showShort(error);
                                                 closeLoadingDialog();
                                             }
-                                        },new int[]{1}
+                                        }
                                 );
 
                             }
